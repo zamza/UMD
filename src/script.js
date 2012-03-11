@@ -5,7 +5,9 @@ var player;
 var canMove;
 var moveCounter;
 var playerRotate;
-
+var staticTest;
+var fontTest;
+var meter;
 
 function init() {
 
@@ -15,14 +17,18 @@ function init() {
     scene = new Scene();
     scene.setSize(640, 480);
     scene.setPos(100, 100);
-
+	
+	staticTest = new Static(scene, 0, 0, 32, 32, "img/Gold.png");
+	var tText  = "Hey, fonts work!";
+	fontTest = new Text(scene, 40, 40, tText, "#FF0000");
+	meter = new Meter(scene, 100, 300, 300, "#FF0000", 10, 100, DRAIN_DOWN);
+	
     initializePlayer();
-
+	
     generateMap();
 
     scene.camera.followSprite(player, 0, 0);
     scene.start();
-
 
 }
 
@@ -39,7 +45,9 @@ function update() {
 
     player.applyPhysics();
     player.update();
-
+	meter.draw();
+	staticTest.draw();
+	fontTest.draw();
 }
 
 function initializePlayer() {
