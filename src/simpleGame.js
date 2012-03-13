@@ -12,7 +12,7 @@
    - Show which side of a tile has been collided with. :: DONE(12/5/11)
    - Add boundary action that keeps you from moving past edge :: DONE(12/5/11)
    - Allow user to lock camera so that it will not display off tilemap :: DONE (12/8/11)
-   - Allow user to switch scenes :: DONE State Management Implemented  (3/10/12)
+   - Allow user to switch scenes
    - Allow user to animate a tile
    - Allow animation setting to play only a certain number of times
    - Allow user to set a tile onClick callback
@@ -73,50 +73,6 @@ VectorMath = function(){
 	this.distanceFrom = function(vec1, vec2){ return Math.sqrt( Math.pow(vec1.x - vec2.x, 2) + Math.pow(vec1.y - vec2.y, 2) ); }
 }
 
-function State(nam, callb){
-	this.name = nam;
-	this.stateUpdateCallback = callb;
-}
-
-function StateMan(){
-	this.stateStack = new Array();
-	this.usingStates = false;
-	this.firstState = false;
-	this.currentState = false;
-	this.emptyStack = true;
-	this.needsInitFlag = false;
-	
-	this.addState = function(name, updateCallback, initCallback){
-		var tState = new State(name, updateCallback, initCallback);
-		if(!this.currentState){ 
-			this.currentState = tState;
-			this.usingStates = true;
-		}
-		else{ 
-			this.stateStack.push(this.currentState);
-			this.currentState = tState;
-		}
-		if(!this.firstState){ this.firstState = this.currentState; }
-		this.needsInitFlag = true;
-		return this.currentState;
-	}
-	
-	this.lastState = function(){
-		if(this.firstState === this.currentState){ this.usingStates = false; }
-		this.currentState = this.stateStack.pop();
-	}
-	
-	this.setState = function(state){
-		if(this.currentState != false){ this.stateStack.push(this.currentState); }
-		this.currentState = state;
-	}
-	
-	this.update = function(){
-		if(this.needsInitFlag){ this.currentState.stateInitCallback(); this.needsInitFlag = false; }
-		this.currentState.stateUpdateCallback();
-	}
-}
-
 function Rectangle(x, y, w, h){
 	this.leftX = x;
 	this.rightX = x + w;
@@ -125,14 +81,7 @@ function Rectangle(x, y, w, h){
 	this.width = w;
 	this.height = h;
 	
-	this.collideRectangle = function(rect2){
-			if( !( (this.bottomY < rect2.topY) ||
-					 (this.topY > rect2.bottomY) ||
-					 (this.rightX < rect2.leftX) ||
-					 (this.leftX > rect2.rightX) ) )
-			{ return true; }
-			else{ return false; }
-	}
+	this.collideRectangle = function(){}
 	this.collidePoint = function(tx, ty){
 		if( tx >= this.leftX && tx <= this.rightX && ty >= this.topY && ty <= this.bottomY ){ return true; }
 		else{ return false; }
@@ -154,8 +103,6 @@ function Button(scene, x, y, w, h, func){
 	this.borderColor = false;
 	this.isClickable = false;
 	this.clickCallback = func;
-	this.isClickArea = false;
-	this.notCameraRelative = true;
 	this.scene.inputMan.addClickable(this.topLeftX, this.topLeftY, this.width, this.height, this);
 	
 	this.setBorderColor = function(bc){ this.borderColor = bc; }
@@ -167,30 +114,27 @@ function Button(scene, x, y, w, h, func){
 		this.width = this.image.width; 
 		this.height = this.image.height;
 	}
-	this.setClickArea = function(){ this.isClickArea = true; }
 	this.draw = function(){
-		if(!this.isClickArea){
-			if(this.image){
-				this.context.drawImage(this.image, this.topLeftX, this.topLeftY);
-			}
-			else{
-				this.context.save();
-				this.context.fillStyle = this.color;
-				this.context.strokeStyle = this.borderstyle ? this.borderStyle : this.color;
-				this.context.lineWidth = 1;
-				this.context.beginPath();
-				var tx = this.topLeftX + this.width;
-				var ty = this.topLeftY + this.height;
-				this.context.moveTo(this.topLeftX, this.topLeftY); // give the (x,y) coordinates
-				this.context.lineTo(tx, this.topLeftY);
-				this.context.lineTo(tx, ty);
-				this.context.lineTo(this.topLeftX, ty);
-				this.context.lineTo(this.topLeftX, this.topLeftY);
-				this.context.fill();
-				this.context.stroke();
-				this.context.closePath();
-				this.context.restore();
-			}
+		if(this.image){
+			this.context.drawImage(this.image, this.topLeftX, this.topLeftY);
+		}
+		else{
+			this.context.save();
+			this.context.fillStyle = this.color;
+			this.context.strokeStyle = this.borderstyle ? this.borderStyle : this.color;
+			this.context.lineWidth = 1;
+			this.context.beginPath();
+			var tx = this.topLeftX + this.width;
+			var ty = this.topLeftY + this.height;
+			this.context.moveTo(this.topLeftX, this.topLeftY); // give the (x,y) coordinates
+			this.context.lineTo(tx, this.topLeftY);
+			this.context.lineTo(tx, ty);
+			this.context.lineTo(this.topLeftX, ty);
+			this.context.lineTo(this.topLeftX, this.topLeftY);
+			this.context.fill();
+			this.context.stroke();
+			this.context.closePath();
+			this.context.restore();
 		}
 	}
 	
@@ -210,54 +154,6 @@ function Button(scene, x, y, w, h, func){
 	}
 }
 
-function Static(scene, x, y, w, h, imgsrc){
-	this.scene = scene;
-	this.context = scene.camera.context;
-	this.topLeftX = x;
-	this.topLeftY = y;
-	this.height = h;
-	this.width = w;
-	this.image = new Image();
-	this.image.src = imgsrc;
-	this.notCameraRelative = true;
-	
-	this.setPosition = function(nx, ny){ this.topLeftX = nx; this.topLeftY = ny; }
-	this.setImage = function(imgsrc){ 
-		this.image = new Image(); 
-		this.image.src = imgsrc; 
-		this.width = this.image.width; 
-		this.height = this.image.height;
-	}
-	
-	this.draw = function(){
-		this.context.drawImage(this.image, this.topLeftX, this.topLeftY);
-	}
-}
-
-function Text(scene, x, y, txt, col, font, maxWidth){
-	this.scene = scene;
-	this.context = scene.camera.context;
-	this.topLeftX = x;
-	this.topLeftY = y;
-	this.text = txt;
-	this.font = typeof font != "undefined" ? font : false;
-	this.color = typeof col != "undefined" ? col : false;
-	this.maxWidth = typeof maxWidth != "undefined" ? maxWidth : false;
-	
-	this.setText = new function(ntxt){ this.text = ntxt; }
-	this.setFont = new function(nf){ this.font = nf; }
-	this.setPosition = new function(nx, ny){ this.topLeftX = nx; this.topLeftY = ny; }
-	this.setColor = new function(c){ this.color = c; }
-	this.setMaxWidth = new function(nw){ this.maxWidth = nw; }
-	
-	this.draw = function(){
-		this.context.fillStyle = this.color ? this.color : "#000000";
-		this.context.font = this.font ? this.font : "italic 30px sans-serif";
-		this.context.textBaseline = 'top';
-		this.context.fillText  (this.text, this.topLeftX, this.topLeftY);
-	}
-}
-
 function Meter(scene, max, meterX, meterY, col, w, h, dir, imgsrc, imgX, imgY){
 	this.camera = scene.camera;
 	this.context = scene.camera.context;
@@ -271,15 +167,13 @@ function Meter(scene, max, meterX, meterY, col, w, h, dir, imgsrc, imgX, imgY){
 	this.meterTopLeftX = meterX;
 	this.meterTopLeftY = meterY;
 	this.hasImage = false;
-	this.notCameraRelative = true;
-	
 	if( typeof img != "undefined" ){
 		this.image = new Image();
 		this.image.src = imgsrc;
 		this.imageTopLeftX = imgX;
 		this.imageTopLeftY = imgY;
-		this.hasImage = true;
 	}
+	else{this.hasImage = true;}
 	
 	this.fill = function(){ this.current = this.maximum; }
 	this.setCurrent = function(cur){ this.current = cur; }
@@ -300,10 +194,10 @@ function Meter(scene, max, meterX, meterY, col, w, h, dir, imgsrc, imgX, imgY){
 	this.draw = function(){
 		var percentFill = this.current / this.maximum;
 		this.context.fillStyle = this.color;
-		var x = this.meterTopLeftX;
-		var y = this.meterTopLeftY;
-		var maxX = this.meterTopLeftX + this.width;
-		var maxY = this.meterTopLeftY + this.height;
+		//make meter camera relative
+		var x = this.meterTopLeftX + this.camera.cameraOffsetX;
+		var y = this.meterTopLeftY + this.camera.cameraOffsetY;
+		
 		var w = this.width;
 		var h = this.height;
 		if( this.direction == DRAIN_LEFT ){ w = Math.round(this.width * percentFill); }
@@ -312,8 +206,8 @@ function Meter(scene, max, meterX, meterY, col, w, h, dir, imgsrc, imgX, imgY){
 		else if( this.direction == DRAIN_DOWN ){ h = Math.round(this.height * percentFill); y += this.height - h; }
 		if( w <= 0 ){ w = 0; }
 		if( h <= 0 ){ h = 0; }
-		if( x >= maxX ){ x = maxX; }
-		if( y >= maxY ){ y = maxY; }
+		if( x >= this.width ){ x = this.width; }
+		if( y >= this.height ){ y = this.height; }
 		this.context.fillRect(x, y, w, h);
 		this.context.strokeStyle = this.borderColor;
 		this.context.strokeRect(x, y, w, h);
@@ -327,8 +221,7 @@ function InputMan(){
 	
 	this.clickCheck = function(){
 		for(var i = 0; i < this.clickRects.length; i++){
-			if( this.clickObjects[i].notCameraRelative && this.clickRects[i].collidePoint(Mouse["camX"], Mouse["camY"]) ){ this.clickObjects[i].clickCallback(); }
-			else if( this.clickRects[i].collidePoint(Mouse["posX"], Mouse["posY"]) ){ this.clickObjects[i].clickCallback(); }
+			if( this.clickRects[i].collidePoint(Mouse["camX"], Mouse["camY"]) ){ this.clickObjects[i].clickCallback(); }
 		}
 	}
 	
@@ -1330,7 +1223,6 @@ function Scene(placementId){
     
 	this.mouse = false;
 	this.inputMan = new InputMan();
-	this.stateMan = new StateMan();
 	
     this.clear = function(){
       this.context.clearRect(0, 0, this.width, this.height);
@@ -1415,9 +1307,6 @@ function Scene(placementId){
       this.canvas.style.backgroundColor = color;
     } // end this.setBG
     
-	this.addState = function(name, ucallb, icallb){ return this.stateMan.addState(name, ucallb, icallb); }
-	this.lastState = function(){ return this.stateMan.lastState(); }
-	this.stateUpdate = function(){ return this.stateMan.update(); }
     this.setSize(400, 300);
     this.setPos(10, 100);
     this.setBG("lightgray");
@@ -1570,7 +1459,7 @@ K_A = 65; K_B = 66; K_C = 67; K_D = 68; K_E = 69; K_F = 70; K_G = 71;
 K_H = 72; K_I = 73; K_J = 74; K_K = 75; K_L = 76; K_M = 77; K_N = 78;
 K_O = 79; K_P = 80; K_Q = 81; K_R = 82; K_S = 83; K_T = 84; K_U = 85;
 K_V = 86; K_W = 87; K_X = 88; K_Y = 89; K_Z = 90;
-K_LEFT = 37; K_RIGHT = 39; K_UP = 38;K_DOWN = 40; K_SPACE = 32;K_CTRL = 17;
+K_LEFT = 37; K_RIGHT = 39; K_UP = 38;K_DOWN = 40; K_SPACE = 32;
 //Animation Constants
 SINGLE_ROW = 1; SINGLE_COLUMN = 2; VARIABLE_LENGTH = 3;
 PLAY_ONCE = 1; PLAY_LOOP = 2;
