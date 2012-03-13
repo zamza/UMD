@@ -13,6 +13,15 @@ var loseState;
 //the only other variables here are what should be accessible in multiple states
 var tileManager;
 var player;
+var warehouseMaps;
+var warehouseEnemies;
+var warehouseItems;
+var collisionMap;
+var warehouseId;
+
+var itemEnum = {
+
+}
 
 function toIntroState(){ introState = scene.addState( "Intro", introUpdate, introInit); }
 function toTitleState(){ titleState = scene.addState( "Title", titleUpdate, titleInit); }
@@ -42,6 +51,7 @@ function warehouseInit(){
 	warehouseState.warehouseBG = new Static(scene, 0, 0, 640, 480, "img/WarehouseDistrictBG.png"); 
 	warehouseState.nextStateBtn = new Button(scene, 300, 200, 32, 32, toMainState);
 	
+	warehouseId = 0;
 }
 
 function mainInit() {
@@ -51,9 +61,11 @@ function mainInit() {
 	mainState.loseStateBtn = new Button(scene, 200, 200, 32, 32, toLoseState);
 	mainState.bossStateBtn = new Button(scene, 300, 200, 32, 32, toBossState);
 	mainState.clueStateBtn = new Button(scene, 400, 200, 32, 32, toClueState);*/
+	
 	mainState.canMove = true;
     mainState.moveCounter = 0;
 	mainState.playerTurn = true;
+	loadWarehouseMap();
 	scene.camera.followSprite(player, 0, 0);
 	initGUI();
 }
@@ -143,13 +155,14 @@ function initializePlayer() {
         }
         guiMeter.add(healthChange);
         if (guiMeter.getCurrent() <= 0) {
+			toLoseState();
             //TODO: PLAYER DED
         }
     }
 
     player.updateStimPacks = function (stimChange) {
         player.stimPacks += stimChange;
-        mainState.txtStimQuantity.text = player.stimPacks;
+        //mainState.txtStimQuantity.text = player.stimPacks;
     }
 
     player.updateHealthPacks = function (packChange) {
@@ -159,22 +172,22 @@ function initializePlayer() {
 
     player.updateTraps = function (trapChange) {
         player.healthPacks += trapChange;
-        mainState.txtTrapQuantity.text = player.traps;
+        //mainState.txtTrapQuantity.text = player.traps;
     }
 
     player.updateIncendiary = function (incendiaryChange) {
         player.incendiaryAmmo += incendiaryChange;
-        //Update incendiary ammo in UI
+		mainState.txtIncendiaryQuantity.text = player.incendiaryAmmo;
     }
 
     player.updateAlki = function (alkiChange) {
         player.alkiAmmo += alkiChange;
-        //Update sonic ammo in UI
+        mainState.txtAlkiQuantity.text = player.alkiAmmo;
     }
 
     player.updateSonic = function (sonicChange) {
         player.sonicAmmo += sonicChange;
-        //Update sonic ammo in UI
+        mainState.txtSonicQuantity.text = player.sonicAmmo;
     }
 
     player.updateClip = function (clipChange) {
@@ -338,9 +351,157 @@ function drawGUI() {
     mainState.txtSonicQuantity.draw();
 }
 
+function pickupHealthPack(itemIndex){
+	player.updateHealthPacks(1);
+	warehouseItems.splice(itemIndex, 1);
+}
+
+function pickupStimPack(itemIndex){
+	player.updateStimPacks(1);
+	warehouseItems.splice(itemIndex, 1);
+}
+
+function pickupAlkiAmmo(itemIndex){
+	player.updateAlki(1);
+	warehouseItems.splice(itemIndex, 1);
+}
+
+function pickupSonicAmmo(itemIndex){
+	player.updateSonic(1);
+	warehouseItems.splice(itemIndex, 1);
+}
+
+function pickupIncendiaryAmmo(itemIndex){
+	player.updateIncendiary(1);
+	warehouseItems.splice(itemIndex, 1);
+}
+
+function pickupGrenadeLauncher(itemIndex){
+	player.addGrenadeLauncher();
+	warehouseItems.splice(itemIndex, 1);
+}
+
+function pickupShotgun(itemIndex){
+	player.addShotGun();
+	warehouseItems.splice(itemIndex, 1);
+}
+
+function pickupTrap(itemIndex){
+	player.updateTraps(1);
+	warehouseItems.splice(itemIndex, 1);
+}
+
+function loadWarehouseMap(){
+	tileManager.loadMapData(warehouseMaps[warehouseId]);
+    tileManager.loadCollisionMap(collisionMap);
+	var tw = tileManager.tileWidth;
+	var th = tileManager.tileHeight;
+	var iter;
+	for(iter = 0; iter < warehouseItems.length; iter++){
+		var item = warehouseItems[iter];
+		item.setPosition( (item.tileX * tw), (item.tileY * th) );
+		if( item.itemName == "stimPack" ){ item.collisionCallback = pickupStimPack; }
+		else if( item.itemName == "healthPack" ){ item.collisionCallback = pickupHealthPack; }
+		else if( item.itemName == "alkiAmmo" ){ item.collisionCallback = pickupAlkiAmmo; }
+		else if( item.itemName == "incendiaryAmmo" ){ item.collisionCallback = pickupIncendiaryAmmo; }
+		else if( item.itemName == "sonicAmmo" ){ item.collisionCallback = pickupSonicAmmo; }
+		else if( item.itemName == "grenadeLauncher" ){ item.collisionCallback = pickupGrenadeLauncher; }
+		else if( item.itemName == "shotgun" ){ item.collisionCallback = pickupShotgun; }
+		else if( item.itemName == "trap" ){ item.collisionCallback = pickupTrap; }
+	}
+	for(iter = 0; iter < warehouseEnemies.length; iter++){
+		var enemy = warehouseEnemies[iter];
+		enemy.setPosition( (enemy.tileX * tw) - enemy.width/2, (enemy.tileY * th) - enemy.height/2);
+	}
+}
+
+function createEnemy(enemyName, tileX, tileY){
+	// "Spewer" "Swarmer" "Psych" "Pyro" "Bruser" "Sharptooth" "Boss"
+	var imgsrc = "";
+	if( enemyName == "Spewer" ){ imgsrc = "img/Enemies/spewer.png"; }
+	else if( enemyName == "Swarmer" ){ imgsrc = "img/Enemies/swarmer.png"; }
+	else if( enemyName == "Psych" ){ imgsrc = "img/Enemies/psych.png"; }
+	else if( enemyName == "Pyro" ){ imgsrc = "img/Enemies/pyro.png"; }
+	else if( enemyName == "Bruser" ){ imgsrc = "img/Enemies/bruser.png"; }
+	else if( enemyName == "Sharptooth" ){ imgsrc = "img/Enemies/sharptooth.png"; }
+	else if( enemyName == "Boss" ){ imgsrc = "img/Enemies/boss.png"; }
+	var tEnemy = new Sprite(scene, imgsrc, 32, 32);
+    tEnemy.loadAnimation(256, 256, 32, 32);
+    tEnemy.generateAnimationCycles();
+    cycleNames = new Array("right", "left", "down", "up", "downidle", "rightidle", "leftidle", "upidle" );
+    tEnemy.renameCycles(cycleNames);
+	
+	tEnemy.tileX = tileX;
+	tEnemy.tileY = tileY;
+	tEnemy.enemyName = enemyName;
+	
+	//arbitrary variable values for now
+	tEnemy.visibilityRadius = 8;
+	tEnemy.intelligence = 1;
+	tEnemy.health = 5;
+	tEnemy.damage = 1;
+	tEnemy.range  = 2;
+	
+	tEnemy.checkVisibility = function(){
+		//grab the information of the area he can see
+	}
+	
+	tEnemy.moveUp = function(){
+		//move enemy up
+	}
+	
+	tEnemy.moveDown = function(){
+		//move enemy down
+	}
+	
+	tEnemy.moveLeft = function(){
+		//move enemy left
+	}
+	
+	tEnemy.moveRight = function(){
+		//move enemy right
+	}
+	
+	tEnemy.takeDamage = function(damage){
+		tEnemy.health -= damage;
+	}
+	
+	tEnemy.attack = function(){
+		//use attack in whatever direction he is facing
+	}
+	
+	tEnemy.chooseMove = function(){
+		//here goes the logic for choosing moves
+	}
+	
+	return tEnemy;
+}
+
+function createItem(itemName, tileX, tileY){
+	// "stimPack" "healthPack" "alkiAmmo" "incendiaryAmmo" "sonicAmmo" "grenadeLauncher" "shotgun" "trap"
+	var imgsrc = "";
+	if( itemName == "stimPack" ){ imgsrc = "img/Pickups/stim.png"; }
+	else if( itemName == "healthPack" ){ imgsrc = "img/Pickups/health.png"; }
+	else if( itemName == "alkiAmmo" ){ imgsrc = "img/Pickups/alki.png"; }
+	else if( itemName == "incendiaryAmmo" ){ imgsrc = "img/Pickups/incendiary.png"; }
+	else if( itemName == "sonicAmmo" ){ imgsrc = "img/Pickups/sonic.png"; }
+	else if( itemName == "grenadeLauncher" ){ imgsrc = "img/Pickups/grenade.png"; }
+	else if( itemName == "shotgun" ){ imgsrc = "img/Pickups/shotgun.png"; }
+	else if( itemName == "trap" ){ imgsrc = "img/Pickups/trap.png"; }
+	var tItem = new Static(scene, 0, 0, 32, 32, imgsrc);
+	tItem.setCameraRelative();
+	tItem.tileX = tileX;
+	tItem.tileY = tileY;
+	tItem.itemName = itemName;
+	return tItem;
+}
+
 function generateMap() {
     //Function to generate the map the player is in
-    tileSymbols = new Array("1", "2", "3");
+	warehouseMaps = new Array();
+	warehouseItems = new Array();
+	warehouseEnemies = new Array();
+	tileSymbols = new Array("1", "2", "3");
     var tileMap = new Array(
         new Array("2", "2", "2", "2", "2", "2", "2", "2", "2", "2", "2", "2", "2", "2", "2", "2", "2", "2", "2", "2"),
         new Array("2", "1", "1", "1", "1", "1", "1", "1", "1", "1", "1", "1", "1", "1", "1", "1", "1", "1", "1", "2"),
@@ -362,13 +523,21 @@ function generateMap() {
         new Array("2", "1", "1", "1", "1", "1", "1", "1", "1", "1", "1", "1", "1", "1", "1", "1", "1", "1", "1", "2"),
         new Array("2", "1", "1", "1", "1", "1", "1", "1", "1", "1", "1", "1", "1", "1", "1", "1", "1", "1", "1", "2"),
         new Array("2", "2", "2", "2", "2", "2", "2", "2", "2", "2", "2", "2", "2", "2", "2", "2", "2", "2", "2", "2"));
-
-    collisionMap = new Array();
-    var collisionMap = new Array(new Array("2", tileCollision));
-    tileManager = new TileMap(scene);
+	
+	collisionMap = new Array( new Array("2", tileCollision) );
+	
+	warehouseMaps[0] = tileMap;
+	warehouseItems.push( createItem("healthPack", 10, 11) );
+	warehouseItems.push( createItem("grenadeLauncher", 10, 13) );
+	warehouseItems.push( createItem("shotgun", 12, 11) );
+	warehouseItems.push( createItem("alkiAmmo", 8, 11) );
+	warehouseItems.push( createItem("incendiaryAmmo", 10, 9) );
+	warehouseItems.push( createItem("sonicAmmo", 8, 8) );
+	warehouseItems.push( createItem("stimPack", 12, 12) );
+	warehouseItems.push( createItem("trap", 12, 8) );
+	warehouseEnemies.push( createEnemy("Spewer", 10, 3) );
+	tileManager = new TileMap(scene);
     tileManager.loadTileSheet(32, 32, 320, 320, "img/TileSet.png", tileSymbols);
-    tileManager.loadMapData(tileMap);
-    tileManager.loadCollisionMap(collisionMap);
 }
 
 function checkKeys() {
@@ -390,7 +559,8 @@ function checkKeys() {
             player.speed = 4;
         }
         player.setCurrentCycle("left");
-        player.setMoveAngle(180);
+        //player.setMoveAngle(180);
+		player.setChangeX(-4);
         if (!mainState.playerRotate) {
             player.updateX(-1);
         }
@@ -401,7 +571,8 @@ function checkKeys() {
             player.speed = 4;
         }
         player.setCurrentCycle("right");
-        player.setMoveAngle(0);
+        //player.setMoveAngle(0);
+		player.setChangeX(4);
         if (!mainState.playerRotate) {
             player.updateX(1);
         }
@@ -412,7 +583,8 @@ function checkKeys() {
             player.speed = 4;
         }
         player.setCurrentCycle("up");
-        player.setMoveAngle(270);
+        //player.setMoveAngle(270);
+		player.setChangeY(-4);
         if (!mainState.playerRotate) {
             player.updateY(-1);
         }
@@ -423,7 +595,8 @@ function checkKeys() {
             player.speed = 4;
         }
         player.setCurrentCycle("down");
-        player.setMoveAngle(90);
+        //player.setMoveAngle(90);
+		player.setChangeY(4);
         if (!mainState.playerRotate) {
             player.updateY(1);
         }
@@ -454,12 +627,12 @@ function checkKeys() {
     }
 }
 
-function lockMovement() {
+function lockMovement() {//TODO: Tyler - find out what is wrong with movement or collisions
     //Locks the player's movement if he is in motion
     mainState.moveCounter += player.speed;
 
     //Once the player has moved one tile, stop the player, check the ground under his feet, and start the enenmy's turn
-    if (mainState.moveCounter == 36) {
+    if (mainState.moveCounter == 36	) {
         mainState.moveCounter = 0;
         player.setSpeed(0);
         mainState.canMove = true;
@@ -486,10 +659,6 @@ function lockMovement() {
 function tileCollision(hitTile) {
     //resetSpeedFlag = true;
     //player.setSpeed(0);
-}
-
-function startEnemyTurn() {
-    //Controlling all enemies decision making goes here
 }
 
 function startEnemyTurn() {
@@ -524,10 +693,15 @@ function mainUpdate() {
         lockMovement();
 	
 	tileManager.drawMap();
-
     player.applyPhysics();
     tileManager.checkCollisions(player);
-    tileManager.drawMap();
+	var iter;
+	for(iter = 0; iter < warehouseItems.length; iter++){ 
+		if(player.xTile == warehouseItems[iter].tileX && player.yTile == warehouseItems[iter].tileY )
+			{ warehouseItems[iter].collisionCallback(iter); }
+		warehouseItems[iter].draw(); 
+	}
+	for(iter = 0; iter < warehouseEnemies.length; iter++){ warehouseEnemies[iter].update(); }
     player.update();
     drawGUI();
 }
