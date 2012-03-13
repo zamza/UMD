@@ -1,98 +1,100 @@
 ﻿///<reference path = "~/lib/simpleGame.js" />
-
-// "Constants.  Change the values of the game here
-var PISTOL_CLIP = 12;
-var SHOTGUN_CLIP = 6;
-var GRENADE_CLIP = 1;
-
-//Globals
 var scene;
-var tileManager;
-var player;
 
-//Booleans
-var canMove;
-var moveCounter;
-var playerRotate;
-var playerTurn;
-
-//Game states
 var titleState;
 var introState;
+var warehouseState;
 var mainState;
 var clueState;
 var bossState;
 var winState;
+var loseState;
 
-//GUI Image Elements
-var guiBG;
-var guiPistol;
-var guiShotgun;
-var guiGrenade;
-var guiPortrait;
-var guiIncendiary;
-var guiAlki;
-var guiSonic;
-var guiHealth;
-var guiStim;
-var guiTrap;
-var guiMeter;
-var guiClip;
+//the only other variables here are what should be accessible in multiple states
+var tileManager;
+var player;
 
-//GUI Text Elements
-var txtClipSize;
-var txtHealthAmount;
-var txtHealthQuantity;
-var txtTrapQuantity;
-var txtStimQuantity;
-var txtIncendiaryQuantity;
-var txtAlkiQuantity;
-var txtSonicQuantity;
+function toIntroState(){ introState = scene.addState( "Intro", introUpdate, introInit); }
+function toTitleState(){ titleState = scene.addState( "Title", titleUpdate, titleInit); }
+function toWarehouseState(){ warehouseState = scene.addState( "Warehouse", warehouseUpdate, warehouseInit); }
+function toMainState(){ mainState = scene.addState( "Main", mainUpdate, mainInit); }
+function toBossState(){ bossState = scene.addState( "Boss", bossUpdate, bossInit); }
+function toClueState(){ clueState = scene.addState( "Clue", clueUpdate, clueInit); }
+function toWinState(){ winState = scene.addState( "Win", winUpdate, winInit); }
+function toLoseState(){ loseState = scene.addState( "Lose", loseUpdate, loseInit); }
+
+function titleInit() {
+	//replace this with whatever needs to be initialized for this state.
+	titleState.titleBG = new Static(scene, 0, 0, 640, 480, "img/TitleBG.png"); 
+	titleState.nextStateBtn = new Button(scene, 300, 200, 32, 32, toIntroState);
+}
+
+function introInit() {
+	//replace this with whatever needs to be initialized for this state.
+	introState.introBG = new Static(scene, 0, 0, 640, 480, "img/IntroBG.png"); 
+	introState.nextStateBtn = new Button(scene, 300, 200, 32, 32, toWarehouseState);
+	initializePlayer();
+	generateMap();
+}
+
+function warehouseInit(){
+	//replace this with whatever needs to be initialized for this state.
+	warehouseState.warehouseBG = new Static(scene, 0, 0, 640, 480, "img/WarehouseDistrictBG.png"); 
+	warehouseState.nextStateBtn = new Button(scene, 300, 200, 32, 32, toMainState);
+	
+}
+
+function mainInit() {
+	//replace this with whatever needs to be initialized for this state.
+	/*mainState.mainBG = new Static(scene, 0, 0, 640, 480, "img/MainBG.png"); 
+	mainState.winStateBtn = new Button(scene, 100, 200, 32, 32, toWinState);
+	mainState.loseStateBtn = new Button(scene, 200, 200, 32, 32, toLoseState);
+	mainState.bossStateBtn = new Button(scene, 300, 200, 32, 32, toBossState);
+	mainState.clueStateBtn = new Button(scene, 400, 200, 32, 32, toClueState);*/
+	mainState.canMove = true;
+    mainState.moveCounter = 0;
+	mainState.playerTurn = true;
+	scene.camera.followSprite(player, 0, 0);
+	initGUI();
+}
+
+function clueInit() {
+	//replace this with whatever needs to be initialized for this state.
+	clueState.clueBG = new Static(scene, 0, 0, 640, 480, "img/ClueBG.png"); 
+	clueState.nextStateBtn = new Button(scene, 300, 200, 32, 32, toMainState);
+}
+
+function bossInit() {
+	//replace this with whatever needs to be initialized for this state.
+	bossState.bossBG = new Static(scene, 0, 0, 640, 480, "img/BossBG.png"); 
+	bossState.nextStateBtn = new Button(scene, 300, 200, 32, 32, toMainState);
+}
+
+function winInit() {
+	//replace this with whatever needs to be initialized for this state.
+	winState.winBG = new Static(scene, 0, 0, 640, 480, "img/WinBG.png"); 
+	winState.nextStateBtn = new Button(scene, 300, 200, 32, 32, toTitleState);
+}
+
+function loseInit() {
+	//replace this with whatever needs to be initialized for this state.
+	loseState.loseBG = new Static(scene, 0, 0, 640, 480, "img/loseBG.png"); 
+	loseState.nextStateBtn = new Button(scene, 300, 200, 32, 32, toTitleState);
+}
 
 function init() {
-
-    canMove = true;
-    moveCounter = 0;
-    playerTurn = true;
-
-    scene = new Scene();
+    scene = new Scene("canvasTarget");
     scene.setSize(640, 480);
     scene.setPos(100, 100);
-
-    //Add game states
-    /*titleState = scene.addState("TitleScreen", titleUpdate);
-    introState = scene.addState("IntroScreen", introUpdate);
-    mainState = scene.addState("MainGame", mainUpdate);
-    clueState = scene.addState("ClueScreen", clueUpdate);
-    bossState = scene.addState("BossStoryScreen", bossUpdate);
-    winState = scene.addState("WinScreen", winUpdate);*/
-
-    initializePlayer();
-
-    generateMap();
-
-    initGUI();
-
-    scene.camera.followSprite(player, 0, 0);
+	
+	titleState = scene.addState( "Title", titleUpdate, titleInit);
     scene.start();
-
-
 }
 
 function update() {
-    checkKeys();
-    if (canMove == false)
-        lockMovement();
-
     scene.clear();
-
-    tileManager.drawMap();
-
-    player.applyPhysics();
-    tileManager.checkCollisions(player);
-    tileManager.drawMap();
-    player.update();
-    drawGUI();
+	
+	scene.stateUpdate();
 }
 
 function initializePlayer() {
@@ -136,7 +138,7 @@ function initializePlayer() {
 
     player.updateHealth = function (healthChange) {
         player.health += healthChange;
-        if (player.health >= 100) {
+		if (player.health >= 100) {
             player.health == 100;
         }
         guiMeter.add(healthChange);
@@ -147,17 +149,17 @@ function initializePlayer() {
 
     player.updateStimPacks = function (stimChange) {
         player.stimPacks += stimChange;
-        txtStimQuantity.text = player.stimPacks;
+        mainState.txtStimQuantity.text = player.stimPacks;
     }
 
     player.updateHealthPacks = function (packChange) {
         player.healthPacks += packChange;
-        txtHealthQuantity.text = player.healthPacks;
+        mainState.txtHealthQuantity.text = player.healthPacks;
     }
 
     player.updateTraps = function (trapChange) {
         player.healthPacks += trapChange;
-        txtTrapQuantity.text = player.traps;
+        mainState.txtTrapQuantity.text = player.traps;
     }
 
     player.updateIncendiary = function (incendiaryChange) {
@@ -177,7 +179,7 @@ function initializePlayer() {
 
     player.updateClip = function (clipChange) {
         player.clipSize += clipChange;
-        txtClipSize.text = player.clipSize;
+        mainState.txtClipSize.text = player.clipSize;
     }
 
     player.addShotGun = function () {
@@ -203,11 +205,10 @@ function initializePlayer() {
         if (player.currentWeapon == "grenade") {
             player.clipSize = GRENADE_CLIP;
         }
-        txtClipSize.text = "Remaining Clip: " + player.clipSize;
+        mainState.txtClipSize.text = "Remaining Clip: " + player.clipSize;
         startEnemyTurn();
     }
     player.fireWeapon = function () {
-        bullet = new spri
         document.getElementById("speed").innerHTML = "fire";
     }
     player.meleeAttack = function () {
@@ -223,40 +224,40 @@ function pistolClick() {
 }
 
 function shotgunClick() {
-    if (player.shotgun == true) {
-        player.currentWeapon = "shotgun";
-        document.getElementById("speed").innerHTML = player.currentWeapon;
-        startEnemyTurn();
-    }
+	if (player.shotgun == true) {
+		player.currentWeapon = "shotgun";
+		document.getElementById("speed").innerHTML = player.currentWeapon;
+		startEnemyTurn();
+	}
 }
 
 function grenadeClick() {
-    if (player.grenade == true) {
-        player.currentWeapon = "grenade";
-        document.getElementById("speed").innerHTML = player.currentWeapon;
-        startEnemyTurn();
-    }
+	if (player.grenade == true) {
+		player.currentWeapon = "grenade";
+		document.getElementById("speed").innerHTML = player.currentWeapon;
+		startEnemyTurn();
+	}
 }
 
 function incendiaryClick() {
-    if (player.incendiary > 0) {
-        player.currentAmmo = "incendiary";
-        document.getElementById("speed").innerHTML = player.currentAmmo;
-    }
+	if (player.incendiary > 0) {
+		player.currentAmmo = "incendiary";
+		document.getElementById("speed").innerHTML = player.currentAmmo;
+	}
 }
 
 function alkiClick() {
-    if (player.alki > 0) {
-        player.currentAmmo = "alki";
-        document.getElementById("speed").innerHTML = player.currentAmmo;
-    }
+	if (player.alki > 0) {
+		player.currentAmmo = "alki";
+		document.getElementById("speed").innerHTML = player.currentAmmo;
+	}
 }
 
 function sonicClick() {
-    if (player.sonic > 0) {
-        player.currentAmmo = "sonic";
-        document.getElementById("speed").innerHTML = player.currentAmmo;
-    }
+	if (player.sonic > 0) {
+		player.currentAmmo = "sonic";
+		document.getElementById("speed").innerHTML = player.currentAmmo;
+	}
 }
 
 function healthClick() {
@@ -269,68 +270,72 @@ function healthClick() {
 
 function initGUI() {
     //Initialize all GUI elements
-    guiBG = new Static(scene, 480, 0, 160, 480, "img/ui/guibackground.png");
+    mainState.guiBG = new Static(scene, 480, 0, 160, 480, "img/ui/guibackground.png");
 
-    guiPortrait = new Static(scene, 490, 10, 140, 140, "img/ui/portrait.png"); 
+    mainState.guiPortrait = new Static(scene, 490, 10, 140, 140, "img/ui/portrait.png"); 
 
-    guiPistol = new Button(scene, 485, 320, 48, 48, pistolClick);
-    guiPistol.setImage("img/ui/pistol.png");
+    mainState.guiPistol = new Button(scene, 485, 320, 48, 48, pistolClick);
+    mainState.guiPistol.setImage("img/ui/pistol.png");
 
-    guiShotgun = new Button(scene, 585, 320, 48, 48, shotgunClick);
-    guiShotgun.setImage("img/ui/shotgun.png");
+    mainState.guiShotgun = new Button(scene, 585, 320, 48, 48, shotgunClick);
+    mainState.guiShotgun.setImage("img/ui/shotgun.png");
 
-    guiGrenade = new Button(scene, 530, 360, 48, 48, grenadeClick);
-    guiGrenade.setImage("img/ui/grenade.png");
+    mainState.guiGrenade = new Button(scene, 530, 360, 48, 48, grenadeClick);
+    mainState.guiGrenade.setImage("img/ui/grenade.png");
 
-    guiIncendiary = new Button(scene, 490, 160, 32, 32, incendiaryClick);
-    guiIncendiary.setImage("img/ui/incendiary.png");
+    mainState.guiIncendiary = new Button(scene, 490, 160, 32, 32, incendiaryClick);
+    mainState.guiIncendiary.setImage("img/ui/incendiary.png");
 
-    guiAlki = new Button(scene, 490, 202, 32, 32, alkiClick);
-    guiAlki.setImage("img/ui/alki.png");
+    mainState.guiAlki = new Button(scene, 490, 202, 32, 32, alkiClick);
+    mainState.guiAlki.setImage("img/ui/alki.png");
 
-    guiSonic = new Button(scene, 490, 244, 32, 32, sonicClick);
-    guiSonic.setImage("img/ui/sonic.png");
+    mainState.guiSonic = new Button(scene, 490, 244, 32, 32, sonicClick);
+    mainState.guiSonic.setImage("img/ui/sonic.png");
 
-    guiHealth = new Button(scene, 550, 200, 32, 32, healthClick);
-    guiHealth.setImage("img/ui/health.png");
-    //guiTrap = new Static(scene, 580, 420, 32, 32, "img/ui/trap.png");
+    mainState.guiHealth = new Button(scene, 550, 200, 32, 32, healthClick);
+    mainState.guiHealth.setImage("img/ui/health.png");
+    //mainState.guiTrap = new Static(scene, 580, 420, 32, 32, "img/ui/trap.png");
+    //mainState.guiStim = new Static(scene, 590, 420, 32, 32, "img/ui/stim.png");
 
-    guiMeter = new Meter(scene, player.health, 600, 160, "#FF0000", 30, 120, DRAIN_DOWN);
+    //mainState.guiClip = new Static(scene, 545, 200, 32, 32, "img/ui/clip.png");
 
-    txtClipSize = new Text(scene, 500, 430, "Remaining Clip: " + player.clipSize, "#000", "bold 15px Arial");
-    txtHealthQuantity = new Text(scene, 560, 235, player.healthPacks, "#000", "bold 15px Arial");
-    //txtTrapQuantity = new Text(scene, 550, 460, player.traps, "#000", "bold 15px Arial");
-    txtIncendiaryQuantity = new Text(scene, 528, 170, player.incendiaryAmmo, "#000", "bold 15px Arial");
-    txtAlkiQuantity = new Text(scene, 528, 212, player.alkiAmmo, "#000", "bold 15px Arial");
-    txtSonicQuantity = new Text(scene, 528, 250, player.sonicAmmo, "#000", "bold 15px Arial");
+    mainState.guiMeter = new Meter(scene, player.health, 600, 160, "#FF0000", 30, 120, DRAIN_DOWN);
+
+    mainState.txtClipSize = new Text(scene, 500, 430, "Remaining Clip: " + player.clipSize, "#000", "bold 15px Arial");
+    mainState.txtHealthQuantity = new Text(scene, 560, 235, player.healthPacks, "#000", "bold 15px Arial");
+    //mainState.txtTrapQuantity = new Text(scene, 550, 460, player.traps, "#000", "bold 15px Arial");
+    //mainState.txtStimQuantity = new Text(scene, 600, 460, player.stimPacks, "#000", "bold 15px Arial");
+    mainState.txtIncendiaryQuantity = new Text(scene, 528, 170, player.incendiaryAmmo, "#000", "bold 15px Arial");
+    mainState.txtAlkiQuantity = new Text(scene, 528, 212, player.alkiAmmo, "#000", "bold 15px Arial");
+    mainState.txtSonicQuantity = new Text(scene, 528, 250, player.sonicAmmo, "#000", "bold 15px Arial");
 
 }
 
 function drawGUI() {
     //Draw all GUI elements to the GUI
-    guiBG.draw();
-    guiPortrait.draw();
-
-    guiPistol.draw();
-    if (player.shotgun == true) {
-        guiShotgun.draw();
-    }
-    if (player.grenade == true) {
-        guiGrenade.draw();
-    }
-
-    guiIncendiary.draw();
-    guiAlki.draw();
-    guiSonic.draw();
-    guiHealth.draw();
-    //guiTrap.draw();
-    guiMeter.draw();
-    txtClipSize.draw();
-    txtHealthQuantity.draw();
-    //txtTrapQuantity.draw();
-    txtIncendiaryQuantity.draw();
-    txtAlkiQuantity.draw();
-    txtSonicQuantity.draw();
+    mainState.guiBG.draw();
+    mainState.guiPortrait.draw();
+	
+    mainState.guiPistol.draw();
+    if (player.shotgun == true) { mainState.guiShotgun.draw(); }
+    if (player.grenade == true) { mainState.guiGrenade.draw(); }
+	
+    mainState.guiIncendiary.draw();
+    mainState.guiAlki.draw();
+    mainState.guiSonic.draw();
+	
+    mainState.guiHealth.draw();
+    //mainState.guiTrap.draw();
+    //mainState.guiStim.draw();
+    //mainState.guiClip.draw();
+    mainState.guiMeter.draw();
+    mainState.txtClipSize.draw();
+    mainState.txtHealthQuantity.draw();
+    //mainState.txtTrapQuantity.draw();
+    //mainState.txtStimQuantity.draw();
+    mainState.txtIncendiaryQuantity.draw();
+    mainState.txtAlkiQuantity.draw();
+    mainState.txtSonicQuantity.draw();
 }
 
 function generateMap() {
@@ -371,59 +376,58 @@ function checkKeys() {
 
     //Check to see if the ctrl key is down.  If it is, allow the user to rotate without moving when hitting the arrow keys
     if (keysDown[K_CTRL]) {
-        playerRotate = true;
+        mainState.playerRotate = true;
     }
 
     else {
-        playerRotate = false;
+        mainState.playerRotate = false;
     }
 
     //Check arrow keys for movement.
-    if (keysDown[K_LEFT] && canMove == true) {
-        if (!playerRotate) {
-            canMove = false;
+    if (keysDown[K_LEFT] && mainState.canMove == true) {
+        if (!mainState.playerRotate) {
+            mainState.canMove = false;
             player.speed = 4;
         }
         player.setCurrentCycle("left");
         player.setMoveAngle(180);
-        if (!playerRotate) {
+        if (!mainState.playerRotate) {
             player.updateX(-1);
         }
     }
-    else if (keysDown[K_RIGHT] && canMove == true) {
-        if (!playerRotate) {
-            canMove = false;
+    else if (keysDown[K_RIGHT] && mainState.canMove == true) {
+        if (!mainState.playerRotate) {
+            mainState.canMove = false;
             player.speed = 4;
         }
         player.setCurrentCycle("right");
         player.setMoveAngle(0);
-        if (!playerRotate) {
+        if (!mainState.playerRotate) {
             player.updateX(1);
         }
     }
-    else if (keysDown[K_UP] && canMove == true) {
-        if (!playerRotate) {
-            canMove = false;
+    else if (keysDown[K_UP] && mainState.canMove == true) {
+        if (!mainState.playerRotate) {
+            mainState.canMove = false;
             player.speed = 4;
         }
         player.setCurrentCycle("up");
         player.setMoveAngle(270);
-        if (!playerRotate) {
+        if (!mainState.playerRotate) {
             player.updateY(-1);
         }
     }
-    else if (keysDown[K_DOWN] && canMove == true) {
-        if (!playerRotate) {
-            canMove = false;
+    else if (keysDown[K_DOWN] && mainState.canMove == true) {
+        if (!mainState.playerRotate) {
+            mainState.canMove = false;
             player.speed = 4;
         }
         player.setCurrentCycle("down");
         player.setMoveAngle(90);
-        if (!playerRotate) {
+        if (!mainState.playerRotate) {
             player.updateY(1);
         }
     }
-
     //Fire weapon
     else if (keysDown[K_Z]) {
         player.fireWeapon();
@@ -433,8 +437,8 @@ function checkKeys() {
     else if (keysDown[K_X]) {
         player.meleeAttack();
     }
-
-    //Pass player turn
+	
+	//Pass player turn
     else if (keysDown[K_SPACE]) {
         startEnemyTurn();
     }
@@ -444,7 +448,7 @@ function checkKeys() {
         player.reloadClip();
     }
 
-    //TESTING FUNCTION, DEBUG
+	//TESTING FUNCTION, DEBUG
     else if (keysDown[K_P]) {
         player.updateClip(1);
     }
@@ -452,13 +456,13 @@ function checkKeys() {
 
 function lockMovement() {
     //Locks the player's movement if he is in motion
-    moveCounter += player.speed;
+    mainState.moveCounter += player.speed;
 
     //Once the player has moved one tile, stop the player, check the ground under his feet, and start the enenmy's turn
-    if (moveCounter == 36) {
-        moveCounter = 0;
+    if (mainState.moveCounter == 36) {
+        mainState.moveCounter = 0;
         player.setSpeed(0);
-        canMove = true;
+        mainState.canMove = true;
         if (player.animation.currentCycleName == "left") {
             player.setCurrentCycle("leftidle");
         }
@@ -486,7 +490,11 @@ function tileCollision(hitTile) {
 
 function startEnemyTurn() {
     //Controlling all enemies decision making goes here
-    playerTurn = false;
+}
+
+function startEnemyTurn() {
+    //Controlling all enemies decision making goes here
+    mainState.playerTurn = false;
 }
 
 function checkGround() {
@@ -495,25 +503,56 @@ function checkGround() {
 }
 
 function titleUpdate() {
-
+	titleState.titleBG.draw();
+	titleState.nextStateBtn.draw();
 }
 
 function introUpdate() {
-
+	introState.introBG.draw();
+	introState.nextStateBtn.draw();
 }
 
 function mainUpdate() {
+	/*mainState.mainBG.draw();
+	mainState.winStateBtn.draw();
+	mainState.loseStateBtn.draw();
+	mainState.bossStateBtn.draw();
+	mainState.clueStateBtn.draw();*/
+	
+	checkKeys();
+    if (mainState.canMove == false)
+        lockMovement();
+	
+	tileManager.drawMap();
 
+    player.applyPhysics();
+    tileManager.checkCollisions(player);
+    tileManager.drawMap();
+    player.update();
+    drawGUI();
+}
+
+function warehouseUpdate(){
+	warehouseState.warehouseBG.draw();
+	warehouseState.nextStateBtn.draw();
 }
 
 function clueUpdate() {
-
+	clueState.clueBG.draw();
+	clueState.nextStateBtn.draw();
 }
 
 function bossUpdate() {
-
+	bossState.bossBG.draw();
+	bossState.nextStateBtn.draw();
 }
 
 function winUpdate() {
+	winState.winBG.draw();
+	winState.nextStateBtn.draw();
+}
 
+function loseUpdate() {
+	loseState.loseBG.draw();
+	loseState.nextStateBtn.draw();
 }
