@@ -1,4 +1,5 @@
 ﻿///<reference path = "~/lib/simpleGame.js" />
+///<reference path = "gamevariables.js" />
 var scene;
 
 var titleState;
@@ -22,7 +23,6 @@ var warehouseId;
 var itemEnum = {
 
 }
-
 function toIntroState(){ introState = scene.addState( "Intro", introUpdate, introInit); }
 function toTitleState(){ titleState = scene.addState( "Title", titleUpdate, titleInit); }
 function toWarehouseState(){ warehouseState = scene.addState( "Warehouse", warehouseUpdate, warehouseInit); }
@@ -118,8 +118,8 @@ function initializePlayer() {
     player.renameCycles(cycleNames);
     player.setSpeed(0);
     player.setPosition(49, 49);
-    player.xTile = 1;
-    player.yTile = 1;
+    player.tileX = 1;
+    player.tileY = 1;
     player.health = 100;
 
     //Equipped Weapon and ammo
@@ -140,12 +140,12 @@ function initializePlayer() {
 
     player.updateX = function (_x) {
         //Track player's location, updates x axis tiles
-        player.xTile += _x;
+        player.tileX += _x;
     }
 
     player.updateY = function (_y) {
         //Track player's location, updates y axis tiles
-        player.yTile += _y;
+        player.tileY += _y;
     }
 
     player.updateHealth = function (healthChange) {
@@ -167,6 +167,9 @@ function initializePlayer() {
 
     player.updateHealthPacks = function (packChange) {
         player.healthPacks += packChange;
+        if (player.healthPacks < 0) {
+            player.healthPacks = 0;
+        }
         mainState.txtHealthQuantity.text = player.healthPacks;
     }
 
@@ -177,22 +180,34 @@ function initializePlayer() {
 
     player.updateIncendiary = function (incendiaryChange) {
         player.incendiaryAmmo += incendiaryChange;
-		mainState.txtIncendiaryQuantity.text = player.incendiaryAmmo;
+        if (player.incendiaryAmmo < 0) {
+            player.incendiaryAmmo = 0;
+        }
+        mainState.txtIncendiaryQuantity.text = player.incendiaryAmmo;
     }
 
     player.updateAlki = function (alkiChange) {
         player.alkiAmmo += alkiChange;
+        if (player.alkiAmmo < 0) {
+            player.alkiAmmo = 0;
+        }
         mainState.txtAlkiQuantity.text = player.alkiAmmo;
     }
 
     player.updateSonic = function (sonicChange) {
         player.sonicAmmo += sonicChange;
+        if (player.sonicAmmo < 0) {
+            player.sonicAmmo = 0;
+        }
         mainState.txtSonicQuantity.text = player.sonicAmmo;
     }
 
     player.updateClip = function (clipChange) {
         player.clipSize += clipChange;
-        mainState.txtClipSize.text = player.clipSize;
+        if (player.clipSize < 0) {
+            player.clipSize = 0;
+        }
+        mainState.txtClipSize.text = "Remaining Clip: " + player.clipSize;
     }
 
     player.addShotGun = function () {
@@ -207,18 +222,54 @@ function initializePlayer() {
 
     player.reloadClip = function () {
         var maxClip;
+
+        //Get players currently equipped weapon.  If current clip size is equal to the maximum clip, do nothing
         if (player.currentWeapon == "pistol") {
-            player.clipSize = PISTOL_CLIP;
+            maxClip = PISTOL_CLIP - player.clipSize;
+        }
+        else if (player.currentWeapon == "shotgun") {
+            maxClip = SHOTGUN_CLIP - player.clipSize;
+        }
+        else if (player.currentWeapon == "grenade") {
+            maxClip = GRENADE_CLIP - player.clipSize;
         }
 
-        if (player.currentWeapon == "shotgun") {
-            player.clipSize = SHOTGUN_CLIP;
+        if (maxClip == 0) {
+            return;
         }
 
-        if (player.currentWeapon == "grenade") {
-            player.clipSize = GRENADE_CLIP;
+        //Get the currently equipped ammo.  Do nothing if the player has no ammo of that type left.  
+        //Otherwise, subtract the amount to give the player the maximum clip size.
+        if (player.currentAmmo == "incendiary") {
+            if (player.incendiaryAmmo <= 0) {
+                return;
+            }
+            if (maxClip > player.incendiaryAmmo) {
+                maxClip = player.incendiaryAmmo;
+            }
+            player.updateIncendiary(-maxClip);
         }
-        mainState.txtClipSize.text = "Remaining Clip: " + player.clipSize;
+
+        if (player.currentAmmo == "alki") {
+            if (player.alkiAmmo <= 0) {
+                return;
+            }
+            if (maxClip > player.alkiAmmo) {
+                maxClip = player.alkiAmmo;
+            }
+            player.updateAlki(-maxClip);
+        }
+        if (player.currentAmmo == "sonic") {
+            if (player.sonicAmmo <= 0) {
+                return;
+            }
+            if (maxClip > player.sonicAmmo) {
+                maxClip = player.sonicAmmo;
+            }
+            player.updateSonic(-maxClip);
+        }
+        //Finally, update the new clip, and pass turn
+        player.updateClip(maxClip);
         startEnemyTurn();
     }
     player.fireWeapon = function () {
@@ -232,43 +283,52 @@ function initializePlayer() {
 
 function pistolClick() {
     player.currentWeapon = "pistol";
+    player.clipSize = PISTOL_CLIP;
+    player.updateClip(0);
     document.getElementById("speed").innerHTML = player.currentWeapon;
     startEnemyTurn();
 }
 
 function shotgunClick() {
 	if (player.shotgun == true) {
-		player.currentWeapon = "shotgun";
+	    player.currentWeapon = "shotgun";
+	    player.clipSize = SHOTGUN_CLIP;
+	    player.updateClip(0);
 		document.getElementById("speed").innerHTML = player.currentWeapon;
 		startEnemyTurn();
 	}
 }
 
 function grenadeClick() {
-	if (player.grenade == true) {
-		player.currentWeapon = "grenade";
+    if (player.grenade == true) {
+        player.currentWeapon = "grenade";
+        player.clipSize = GRENADE_CLIP;
+        player.updateClip(0);
 		document.getElementById("speed").innerHTML = player.currentWeapon;
 		startEnemyTurn();
 	}
 }
 
 function incendiaryClick() {
-	if (player.incendiary > 0) {
-		player.currentAmmo = "incendiary";
+    if (player.incendiaryAmmo > 0) {
+        player.updateIncendiary(-refundAmmo());
+	    player.currentAmmo = "incendiary";
 		document.getElementById("speed").innerHTML = player.currentAmmo;
 	}
 }
 
 function alkiClick() {
-	if (player.alki > 0) {
-		player.currentAmmo = "alki";
+    if (player.alkiAmmo > 0) {
+        player.updateAlki(-refundAmmo());
+	    player.currentAmmo = "alki";
 		document.getElementById("speed").innerHTML = player.currentAmmo;
 	}
 }
 
 function sonicClick() {
-	if (player.sonic > 0) {
-		player.currentAmmo = "sonic";
+    if (player.sonicAmmo > 0) {
+        player.updateSonic(-refundAmmo());
+        player.currentAmmo = "sonic";
 		document.getElementById("speed").innerHTML = player.currentAmmo;
 	}
 }
@@ -279,6 +339,20 @@ function healthClick() {
         player.updateHealth(50);
         startEnemyTurn();
     }
+}
+
+function refundAmmo() {
+    var newClipSize = player.clipSize;
+    if (player.currentAmmo == "incendiary") {
+        player.updateIncendiary(newClipSize);
+    }
+    if (player.currentAmmo == "alki") {
+        player.updateAlki(newClipSize);
+    }
+    if (player.currentAmmo == "sonic") {
+        player.updateSonic(newClipSize);
+    }
+    return newClipSize;
 }
 
 function initGUI() {
@@ -362,17 +436,17 @@ function pickupStimPack(itemIndex){
 }
 
 function pickupAlkiAmmo(itemIndex){
-	player.updateAlki(1);
+	player.updateAlki(AMMO_UPDATE);
 	warehouseItems.splice(itemIndex, 1);
 }
 
 function pickupSonicAmmo(itemIndex){
-	player.updateSonic(1);
+	player.updateSonic(AMMO_UPDATE);
 	warehouseItems.splice(itemIndex, 1);
 }
 
 function pickupIncendiaryAmmo(itemIndex){
-	player.updateIncendiary(1);
+	player.updateIncendiary(AMMO_UPDATE);
 	warehouseItems.splice(itemIndex, 1);
 }
 
@@ -411,7 +485,7 @@ function loadWarehouseMap(){
 	}
 	for(iter = 0; iter < warehouseEnemies.length; iter++){
 		var enemy = warehouseEnemies[iter];
-		enemy.setPosition( (enemy.tileX * tw) - enemy.width/2, (enemy.tileY * th) - enemy.height/2);
+		enemy.setPosition( (enemy.tileX * tw) - enemy.width/2 + 32, (enemy.tileY * th) - enemy.height/2 + 32);
 	}
 }
 
@@ -540,6 +614,21 @@ function generateMap() {
     tileManager.loadTileSheet(32, 32, 320, 320, "img/TileSet.png", tileSymbols);
 }
 
+function isSpaceEmpty(_x, _y) {
+    //Checks the space in front of the player.  Returns true if the player can step there, false if the space is occupied.  
+    for (var i = 0; i < warehouseEnemies.length; i++) {
+        //alert(warehouseEnemies[i].tileX + " " + warehouseEnemies[i].tileY + " / " + player.tileX + " " + player.tileY);
+        if (warehouseEnemies[i].tileX == _x) {
+            if (warehouseEnemies[i].tileY == _y) {
+                document.getElementById("speed").innerHTML = "false";
+                return false;
+            }
+        }
+    }
+    document.getElementById("speed").innerHTML = "true";
+    return true;
+}
+
 function checkKeys() {
     //Checks the player's inputs.  Once the player hits an arrow key, they follow a straight path until they get to the next tile.
 
@@ -554,15 +643,18 @@ function checkKeys() {
 
     //Check arrow keys for movement.
     if (keysDown[K_LEFT] && mainState.canMove == true) {
+
         if (!mainState.playerRotate) {
             mainState.canMove = false;
             player.speed = 4;
         }
         player.setCurrentCycle("left");
-        //player.setMoveAngle(180);
-		player.setChangeX(-4);
-        if (!mainState.playerRotate) {
-            player.updateX(-1);
+        if (isSpaceEmpty(player.tileX - 1, player.tileY)) {
+            //player.setMoveAngle(180);
+            player.setChangeX(-4);
+            if (!mainState.playerRotate) {
+                player.updateX(-1);
+            }
         }
     }
     else if (keysDown[K_RIGHT] && mainState.canMove == true) {
@@ -571,10 +663,12 @@ function checkKeys() {
             player.speed = 4;
         }
         player.setCurrentCycle("right");
-        //player.setMoveAngle(0);
-		player.setChangeX(4);
-        if (!mainState.playerRotate) {
-            player.updateX(1);
+        if (isSpaceEmpty(player.tileX + 1, player.tileY)) {
+            //player.setMoveAngle(0);
+            player.setChangeX(4);
+            if (!mainState.playerRotate) {
+                player.updateX(1);
+            }
         }
     }
     else if (keysDown[K_UP] && mainState.canMove == true) {
@@ -583,10 +677,12 @@ function checkKeys() {
             player.speed = 4;
         }
         player.setCurrentCycle("up");
-        //player.setMoveAngle(270);
-		player.setChangeY(-4);
-        if (!mainState.playerRotate) {
-            player.updateY(-1);
+        if (isSpaceEmpty(player.tileX, player.tileY - 1)) {
+            //player.setMoveAngle(270);
+            player.setChangeY(-4);
+            if (!mainState.playerRotate) {
+                player.updateY(-1);
+            }
         }
     }
     else if (keysDown[K_DOWN] && mainState.canMove == true) {
@@ -595,12 +691,15 @@ function checkKeys() {
             player.speed = 4;
         }
         player.setCurrentCycle("down");
-        //player.setMoveAngle(90);
-		player.setChangeY(4);
-        if (!mainState.playerRotate) {
-            player.updateY(1);
+        if (isSpaceEmpty(player.tileX, player.tileY + 1)) {
+            //player.setMoveAngle(90);
+            player.setChangeY(4);
+            if (!mainState.playerRotate) {
+                player.updateY(1);
+            }
         }
     }
+
     //Fire weapon
     else if (keysDown[K_Z]) {
         player.fireWeapon();
@@ -623,7 +722,7 @@ function checkKeys() {
 
 	//TESTING FUNCTION, DEBUG
     else if (keysDown[K_P]) {
-        player.updateClip(1);
+    player.updateClip(-1);
     }
 }
 
@@ -697,12 +796,12 @@ function mainUpdate() {
     tileManager.checkCollisions(player);
 	var iter;
 	for(iter = 0; iter < warehouseItems.length; iter++){ 
-		if(player.xTile == warehouseItems[iter].tileX && player.yTile == warehouseItems[iter].tileY )
+		if(player.tileX == warehouseItems[iter].tileX && player.tileY == warehouseItems[iter].tileY )
 			{ warehouseItems[iter].collisionCallback(iter); }
 		warehouseItems[iter].draw(); 
 	}
 	for(iter = 0; iter < warehouseEnemies.length; iter++){ warehouseEnemies[iter].update(); }
-    player.update();
+	player.update();
     drawGUI();
 }
 
