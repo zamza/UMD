@@ -39,8 +39,8 @@ function introInit() {
 	//replace this with whatever needs to be initialized for this state.
 	introState.introBG = new Static(scene, 0, 0, 640, 480, "img/IntroBG.png"); 
 	introState.nextStateBtn = new Button(scene, 300, 200, 32, 32, toWarehouseState);
-	initializePlayer();
 	generateMap();
+	initializePlayer();
 }
 
 function warehouseInit(){
@@ -115,9 +115,9 @@ function initializePlayer() {
 	player.setAnimationSpeed(450);
     player.renameCycles(cycleNames);
     player.setSpeed(0);
-    player.setPosition(49, 97);
-    player.tileX = 1;
-    player.tileY = 2;
+    player.setPosition(81, 97);
+    player.tileX = 2;
+    player.tileY = 3;
     player.health = 100;
 
     //Equipped Weapon and ammo
@@ -617,30 +617,46 @@ function generateMap() {
 	warehouseMaps = new Array();
 	warehouseItems = new Array();
 	warehouseEnemies = new Array();
-	tileSymbols = new Array("1", "2", "3");
-    var tileMap = new Array(
-        new Array("2", "2", "2", "2", "2", "2", "2", "2", "2", "2", "2", "2", "2", "2", "2", "2", "2", "2", "2", "2"),
-        new Array("2", "1", "1", "1", "1", "1", "1", "1", "1", "1", "1", "1", "1", "1", "1", "1", "1", "1", "1", "2"),
-        new Array("2", "1", "1", "1", "1", "1", "1", "1", "1", "1", "1", "1", "1", "1", "1", "1", "1", "1", "1", "2"),
-        new Array("2", "1", "1", "1", "1", "1", "1", "1", "1", "1", "1", "1", "1", "1", "1", "1", "1", "1", "1", "2"),
-        new Array("2", "1", "1", "1", "1", "1", "1", "1", "1", "1", "1", "1", "1", "1", "1", "1", "1", "1", "1", "2"),
-        new Array("2", "1", "1", "1", "1", "1", "1", "1", "1", "1", "1", "1", "1", "1", "1", "1", "1", "1", "1", "2"),
-        new Array("2", "1", "1", "1", "1", "1", "1", "1", "1", "1", "1", "1", "1", "1", "1", "1", "1", "1", "1", "2"),
-        new Array("2", "1", "1", "1", "1", "1", "1", "1", "1", "1", "1", "1", "1", "1", "1", "1", "1", "1", "1", "2"),
-        new Array("2", "1", "1", "1", "1", "1", "1", "3", "3", "3", "3", "3", "3", "1", "1", "1", "1", "1", "1", "2"),
-        new Array("2", "1", "1", "1", "1", "1", "1", "3", "3", "3", "3", "3", "3", "1", "1", "1", "1", "1", "1", "2"),
-        new Array("2", "1", "1", "1", "1", "1", "1", "3", "3", "3", "3", "3", "3", "1", "1", "1", "1", "1", "1", "2"),
-        new Array("2", "1", "1", "1", "1", "1", "1", "3", "3", "3", "3", "3", "3", "1", "1", "1", "1", "1", "1", "2"),
-        new Array("2", "1", "1", "1", "1", "1", "1", "3", "3", "3", "3", "3", "3", "1", "1", "1", "1", "1", "1", "2"),
-        new Array("2", "1", "1", "1", "1", "1", "1", "3", "3", "3", "3", "3", "3", "1", "1", "1", "1", "1", "1", "2"),
-        new Array("2", "1", "1", "1", "1", "1", "1", "1", "1", "1", "1", "1", "1", "1", "1", "1", "1", "1", "1", "2"),
-        new Array("2", "1", "1", "1", "1", "1", "1", "1", "1", "1", "1", "1", "1", "1", "1", "1", "1", "1", "1", "2"),
-        new Array("2", "1", "1", "1", "1", "1", "1", "1", "1", "1", "1", "1", "1", "1", "1", "1", "1", "1", "1", "2"),
-        new Array("2", "1", "1", "1", "1", "1", "1", "1", "1", "1", "1", "1", "1", "1", "1", "1", "1", "1", "1", "2"),
-        new Array("2", "1", "1", "1", "1", "1", "1", "1", "1", "1", "1", "1", "1", "1", "1", "1", "1", "1", "1", "2"),
-        new Array("2", "2", "2", "2", "2", "2", "2", "2", "2", "2", "2", "2", "2", "2", "2", "2", "2", "2", "2", "2"));
+	tileSymbols = new Array(
+		"wall1", "wall2", "wall3", "wall4", "wall5", "6", "wall7", "wall8", "wall9", "wall10", "pallet11", "pallet12", "13", "14", "15", "wall16", "17", "wall18", "wall19", "wall20",
+		"21", "22", "pallet23", "pallet24", "wall25", "wall26", "door27", "door28", "door29", "door30", "31", "32", "wall33", "wall34", "crate", "acid", "wall37", "wall38", "wall39", "door40",
+		"door41", "door42", "43", "44", "wall45", "wall46", "oil", "cement", "rack49", "rack50", "rack51", "rack52", "rack53", "rack54", "rack55", "rack56", "57", "58", "59", "60",
+		"rack61", "rack62", "rack63", "rack64", "rack65", "rack66", "rack67", "rack68", "69", "70", "71", "72", "73", "74", "75", "76", "77", "78", "79", "80"
+	);
+    var tileMap = new Array( new Array( "wall3", "wall4", "wall5", "wall5", "wall5", "wall5", "wall5", "wall5", "wall5", "wall5", "wall5", "wall5", "wall5", "wall5", "wall5", "wall5", "wall5", "wall5", "wall5", "wall5", "wall5", "wall5", "wall5", "wall5", "wall5", "wall5", "wall5", "wall5", "wall5", "wall5", "wall7", "wall8"), 
+new Array( "wall1", "wall16", "wall18", "wall18", "wall18", "wall18", "wall18", "wall18", "wall18", "wall18", "wall18", "wall18", "wall18", "wall18", "wall18", "wall18", "wall18", "wall18", "wall18", "wall18", "wall18", "wall18", "wall18", "wall18", "wall18", "wall18", "wall18", "wall18", "wall18", "wall18", "wall19", "wall20"), 
+new Array( "wall1", "wall2", "cement", "cement", "cement", "cement", "cement", "cement", "cement", "cement", "cement", "cement", "cement", "cement", "cement", "cement", "cement", "cement", "cement", "cement", "cement", "cement", "cement", "cement", "cement", "cement", "cement", "cement", "cement", "cement", "wall9", "wall10"), 
+new Array( "wall1", "wall2", "cement", "cement", "cement", "cement", "cement", "cement", "cement", "cement", "cement", "cement", "cement", "cement", "cement", "cement", "cement", "cement", "cement", "cement", "cement", "cement", "cement", "cement", "cement", "cement", "cement", "cement", "cement", "cement", "wall9", "wall10"), 
+new Array( "wall1", "wall2", "cement", "cement", "cement", "cement", "cement", "cement", "cement", "cement", "cement", "cement", "cement", "cement", "cement", "cement", "cement", "crate", "cement", "cement", "cement", "cement", "acid", "acid", "acid", "cement", "acid", "acid", "acid", "cement", "wall9", "wall10"), 
+new Array( "wall1", "wall2", "cement", "cement", "cement", "cement", "cement", "cement", "cement", "cement", "cement", "cement", "cement", "cement", "cement", "cement", "cement", "cement", "cement", "cement", "cement", "cement", "acid", "oil", "acid", "cement", "acid", "oil", "acid", "cement", "wall9", "wall10"), 
+new Array( "wall1", "wall2", "rack49", "rack50", "rack51", "rack52", "rack53", "rack54", "cement", "cement", "cement", "cement", "cement", "oil", "cement", "cement", "cement", "cement", "cement", "cement", "cement", "cement", "acid", "acid", "cement", "cement", "cement", "acid", "acid", "cement", "wall9", "wall10"), 
+new Array( "wall1", "wall2", "rack61", "rack62", "rack63", "rack64", "rack65", "rack66", "cement", "cement", "cement", "cement", "cement", "cement", "cement", "cement", "acid", "cement", "cement", "cement", "cement", "cement", "cement", "cement", "cement", "crate", "cement", "cement", "cement", "cement", "wall9", "wall10"), 
+new Array( "wall1", "wall2", "cement", "cement", "cement", "cement", "rack55", "rack56", "cement", "cement", "cement", "cement", "cement", "cement", "acid", "acid", "acid", "cement", "cement", "cement", "cement", "cement", "acid", "acid", "cement", "cement", "cement", "acid", "acid", "cement", "wall9", "wall10"), 
+new Array( "wall1", "wall2", "cement", "cement", "cement", "cement", "rack67", "rack68", "cement", "cement", "cement", "cement", "cement", "cement", "acid", "acid", "acid", "cement", "cement", "cement", "cement", "cement", "acid", "oil", "acid", "cement", "acid", "oil", "acid", "cement", "wall9", "wall10"), 
+new Array( "wall1", "wall2", "cement", "cement", "cement", "cement", "rack55", "rack56", "cement", "cement", "cement", "cement", "cement", "cement", "cement", "acid", "cement", "cement", "cement", "cement", "cement", "cement", "acid", "acid", "acid", "cement", "acid", "acid", "acid", "cement", "wall9", "wall10"), 
+new Array( "wall1", "wall2", "cement", "cement", "cement", "cement", "rack67", "rack68", "cement", "cement", "cement", "cement", "cement", "cement", "cement", "cement", "cement", "cement", "cement", "cement", "cement", "cement", "cement", "cement", "cement", "cement", "cement", "cement", "cement", "cement", "wall9", "wall10"), 
+new Array( "wall1", "wall2", "cement", "cement", "cement", "cement", "cement", "cement", "cement", "cement", "cement", "pallet11", "pallet12", "cement", "cement", "cement", "cement", "oil", "cement", "cement", "cement", "cement", "cement", "cement", "cement", "cement", "cement", "cement", "cement", "cement", "wall9", "wall10"), 
+new Array( "wall1", "wall2", "cement", "cement", "cement", "cement", "cement", "cement", "cement", "cement", "cement", "pallet23", "pallet24", "cement", "cement", "cement", "cement", "cement", "cement", "cement", "cement", "cement", "cement", "cement", "cement", "cement", "cement", "cement", "cement", "cement", "wall9", "wall10"), 
+new Array( "wall1", "wall2", "rack49", "rack50", "rack51", "rack52", "rack51", "rack52", "rack51", "rack52", "rack51", "rack52", "rack53", "rack54", "cement", "cement", "cement", "cement", "cement", "cement", "cement", "cement", "cement", "acid", "acid", "cement", "cement", "cement", "crate", "crate", "wall9", "wall10"), 
+new Array( "wall1", "wall2", "rack61", "rack62", "rack63", "rack64", "rack63", "rack64", "rack63", "rack64", "rack63", "rack64", "rack65", "rack66", "cement", "cement", "cement", "cement", "cement", "cement", "cement", "acid", "acid", "acid", "acid", "acid", "acid", "cement", "cement", "cement", "wall9", "wall10"), 
+new Array( "wall1", "wall2", "cement", "cement", "cement", "cement", "cement", "cement", "cement", "cement", "cement", "cement", "cement", "cement", "cement", "cement", "cement", "cement", "cement", "cement", "cement", "acid", "acid", "acid", "acid", "acid", "acid", "cement", "cement", "cement", "wall9", "wall10"), 
+new Array( "wall1", "wall2", "cement", "cement", "cement", "cement", "cement", "cement", "cement", "cement", "cement", "cement", "cement", "cement", "cement", "cement", "cement", "cement", "cement", "cement", "cement", "cement", "acid", "acid", "cement", "acid", "acid", "cement", "crate", "cement", "wall9", "wall10"), 
+new Array( "wall1", "wall2", "rack49", "rack50", "rack51", "rack52", "rack53", "rack54", "cement", "cement", "rack49", "rack50", "rack53", "rack54", "cement", "cement", "crate", "cement", "cement", "cement", "cement", "cement", "cement", "cement", "cement", "cement", "cement", "cement", "cement", "cement", "wall9", "wall10"), 
+new Array( "wall1", "wall2", "rack61", "rack62", "rack63", "rack64", "rack65", "rack66", "cement", "cement", "rack61", "rack62", "rack65", "rack66", "crate", "cement", "cement", "cement", "cement", "cement", "cement", "cement", "cement", "cement", "cement", "cement", "cement", "cement", "cement", "cement", "wall9", "wall10"), 
+new Array( "wall1", "wall2", "cement", "cement", "cement", "cement", "cement", "cement", "cement", "cement", "cement", "cement", "cement", "cement", "cement", "cement", "cement", "cement", "cement", "cement", "cement", "cement", "crate", "crate", "cement", "crate", "cement", "cement", "cement", "cement", "wall9", "wall10"), 
+new Array( "wall1", "wall2", "cement", "cement", "cement", "cement", "cement", "cement", "cement", "cement", "cement", "cement", "cement", "cement", "cement", "cement", "cement", "oil", "cement", "cement", "cement", "crate", "cement", "cement", "cement", "cement", "cement", "cement", "oil", "cement", "wall9", "wall10"), 
+new Array( "wall1", "wall2", "cement", "cement", "cement", "cement", "cement", "cement", "cement", "cement", "cement", "cement", "cement", "cement", "cement", "cement", "cement", "cement", "cement", "cement", "cement", "cement", "cement", "cement", "cement", "cement", "cement", "cement", "cement", "cement", "wall9", "wall10"), 
+new Array( "wall1", "wall2", "cement", "cement", "cement", "cement", "cement", "cement", "cement", "cement", "cement", "cement", "cement", "cement", "cement", "oil", "cement", "crate", "cement", "cement", "cement", "cement", "cement", "cement", "cement", "cement", "cement", "cement", "cement", "cement", "wall9", "wall10"), 
+new Array( "wall1", "wall2", "cement", "cement", "cement", "cement", "cement", "cement", "cement", "cement", "cement", "cement", "cement", "cement", "cement", "cement", "cement", "cement", "cement", "cement", "cement", "oil", "oil", "oil", "oil", "oil", "cement", "cement", "cement", "cement", "wall9", "wall10"), 
+new Array( "wall1", "wall2", "cement", "cement", "cement", "cement", "cement", "cement", "cement", "cement", "cement", "cement", "cement", "cement", "oil", "cement", "cement", "cement", "cement", "cement", "cement", "cement", "cement", "cement", "cement", "cement", "cement", "cement", "cement", "cement", "wall9", "wall10"), 
+new Array( "wall1", "wall2", "cement", "cement", "cement", "cement", "cement", "cement", "cement", "cement", "cement", "cement", "cement", "cement", "cement", "cement", "cement", "cement", "cement", "cement", "crate", "cement", "cement", "cement", "oil", "oil", "cement", "cement", "cement", "cement", "wall9", "wall10"), 
+new Array( "wall1", "wall2", "cement", "cement", "cement", "cement", "cement", "cement", "cement", "cement", "cement", "cement", "cement", "cement", "crate", "crate", "cement", "cement", "cement", "cement", "cement", "cement", "cement", "cement", "cement", "cement", "cement", "cement", "cement", "cement", "wall9", "wall10"), 
+new Array( "wall1", "wall2", "cement", "cement", "cement", "cement", "cement", "cement", "cement", "cement", "cement", "cement", "cement", "cement", "crate", "cement", "cement", "cement", "cement", "cement", "cement", "cement", "cement", "cement", "cement", "cement", "pallet11", "pallet12", "cement", "cement", "wall9", "wall10"), 
+new Array( "wall1", "wall2", "cement", "cement", "cement", "cement", "cement", "cement", "cement", "cement", "cement", "cement", "cement", "cement", "cement", "cement", "cement", "cement", "cement", "cement", "cement", "cement", "cement", "cement", "cement", "cement", "pallet23", "pallet24", "cement", "cement", "wall9", "wall10"), 
+new Array( "wall25", "wall26", "wall26", "wall26", "wall26", "wall26", "wall26", "wall26", "wall26", "wall26", "wall26", "wall26", "wall26", "wall26", "wall33", "wall33", "wall33", "door27", "door28", "door29", "door30", "wall33", "wall33", "wall33", "wall33", "wall33", "wall33", "wall33", "wall33", "wall33", "wall33", "wall34"), 
+new Array( "wall37", "wall38", "wall39", "wall39", "wall39", "wall39", "wall39", "wall39", "wall39", "wall39", "wall39", "wall39", "wall39", "wall39", "wall39", "wall39", "wall39", "wall39", "door40", "door41", "door42", "wall39", "wall39", "wall39", "wall39", "wall39", "wall39", "wall39", "wall39", "wall39", "wall45", "wall46") );
 	
-	collisionMap = new Array( new Array("2", tileCollision) );
+	collisionMap = new Array( );
 	
 	warehouseMaps[0] = tileMap;
 	warehouseItems.push( createItem("healthPack", 10, 11) );
@@ -653,7 +669,7 @@ function generateMap() {
 	warehouseItems.push( createItem("trap", 12, 8) );
 	warehouseEnemies.push( createEnemy("Spewer", 10, 3) );
 	tileManager = new TileMap(scene);
-    tileManager.loadTileSheet(32, 32, 320, 320, "img/TileSet.png", tileSymbols);
+    tileManager.loadTileSheet(32, 32, 384, 384, "img/EnvironmentTiles.png", tileSymbols);
 }
 
 function isSpaceEmpty(_x, _y) {
@@ -667,6 +683,21 @@ function isSpaceEmpty(_x, _y) {
             }
         }
     }
+	var tileType = tileManager.getTileSymbol( _x, _y );
+	var superType = tileType.substring(0, 4);// can be wall, door, rack, or pall
+	//document.getElementById("speed").innerHTML = tileType;
+	if( tileType != "cement" && tileType != "acid" && superType != "door" ){
+		return false;
+	}
+	
+	if( superType == "acid" ){
+		//player takes damage
+	}
+	
+	if( superType == "door" ){
+		//exit to warehouse District
+	}
+	
     document.getElementById("speed").innerHTML = "true";
     return true;
 }
@@ -835,7 +866,7 @@ function mainUpdate() {
 	
 	tileManager.drawMap();
     player.applyPhysics();
-    tileManager.checkCollisions(player);
+    //tileManager.checkCollisions(player);
 	var iter;
 	for(iter = 0; iter < warehouseItems.length; iter++){ 
 		if(player.tileX == warehouseItems[iter].tileX && player.tileY == warehouseItems[iter].tileY )
@@ -845,6 +876,7 @@ function mainUpdate() {
 	for(iter = 0; iter < warehouseEnemies.length; iter++){ warehouseEnemies[iter].update(); }
 	player.update();
     drawGUI();
+	//document.getElementById("speed").innerHTML = "X: " + player.tileX + " Y: " + player.tileY;
 }
 
 function warehouseUpdate(){
