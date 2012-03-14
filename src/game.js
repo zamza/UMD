@@ -282,17 +282,21 @@ function initializePlayer() {
 }
 
 function pistolClick() {
+    refundAmmo();
     player.currentWeapon = "pistol";
     player.clipSize = PISTOL_CLIP;
+    weaponSwap();
     player.updateClip(0);
     document.getElementById("speed").innerHTML = player.currentWeapon;
     startEnemyTurn();
 }
 
 function shotgunClick() {
-	if (player.shotgun == true) {
+    if (player.shotgun == true) {
+        refundAmmo();
 	    player.currentWeapon = "shotgun";
 	    player.clipSize = SHOTGUN_CLIP;
+	    weaponSwap();
 	    player.updateClip(0);
 		document.getElementById("speed").innerHTML = player.currentWeapon;
 		startEnemyTurn();
@@ -301,8 +305,10 @@ function shotgunClick() {
 
 function grenadeClick() {
     if (player.grenade == true) {
+        refundAmmo();
         player.currentWeapon = "grenade";
         player.clipSize = GRENADE_CLIP;
+        weaponSwap();
         player.updateClip(0);
 		document.getElementById("speed").innerHTML = player.currentWeapon;
 		startEnemyTurn();
@@ -341,7 +347,21 @@ function healthClick() {
     }
 }
 
+function weaponSwap() {
+    //When the player swaps weapons, subtract the new clip size
+    if (player.currentAmmo == "incendiary") {
+        player.updateIncendiary(-player.clipSize);
+    }
+    if (player.currentAmmo == "alki") {
+        player.updateAlki(-player.clipSize);
+    }
+    if (player.currentAmmo == "sonic") {
+        player.updateSonic(-player.clipSize);
+    }
+}
+
 function refundAmmo() {
+    //Refunds the player ammo, used for swapping ammo and weapons
     var newClipSize = player.clipSize;
     if (player.currentAmmo == "incendiary") {
         player.updateIncendiary(newClipSize);
