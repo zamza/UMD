@@ -20,9 +20,6 @@ var warehouseItems;
 var collisionMap;
 var warehouseId;
 
-var itemEnum = {
-
-}
 function toIntroState(){ introState = scene.addState( "Intro", introUpdate, introInit); }
 function toTitleState(){ titleState = scene.addState( "Title", titleUpdate, titleInit); }
 function toWarehouseState(){ warehouseState = scene.addState( "Warehouse", warehouseUpdate, warehouseInit); }
@@ -111,15 +108,16 @@ function update() {
 
 function initializePlayer() {
     //Runs when the player is created.  Initializes all values for player
-    player = new Sprite(scene, "img/SpriteSheetTemplate.png", 32, 32);
-    player.loadAnimation(256, 256, 32, 32);
+    player = new Sprite(scene, "img/PlayerSpriteSheet1.png", 32, 64);
+    player.loadAnimation( 4 * 32, 8 * 64, 32, 64);
     player.generateAnimationCycles();
-    cycleNames = new Array("right", "left", "down", "up", "downidle", "rightidle", "leftidle", "upidle" );
+    cycleNames = new Array("down", "up", "right", "left", "downidle", "upidle", "rightidle", "leftidle" );
+	player.setAnimationSpeed(450);
     player.renameCycles(cycleNames);
     player.setSpeed(0);
-    player.setPosition(49, 49);
+    player.setPosition(49, 97);
     player.tileX = 1;
-    player.tileY = 1;
+    player.tileY = 2;
     player.health = 100;
 
     //Equipped Weapon and ammo
