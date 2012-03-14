@@ -280,17 +280,21 @@ function initializePlayer() {
 }
 
 function pistolClick() {
+    refundAmmo();
     player.currentWeapon = "pistol";
     player.clipSize = PISTOL_CLIP;
+    weaponSwap();
     player.updateClip(0);
     document.getElementById("speed").innerHTML = player.currentWeapon;
     startEnemyTurn();
 }
 
 function shotgunClick() {
-	if (player.shotgun == true) {
+    if (player.shotgun == true) {
+        refundAmmo();
 	    player.currentWeapon = "shotgun";
 	    player.clipSize = SHOTGUN_CLIP;
+	    weaponSwap();
 	    player.updateClip(0);
 		document.getElementById("speed").innerHTML = player.currentWeapon;
 		startEnemyTurn();
@@ -299,8 +303,10 @@ function shotgunClick() {
 
 function grenadeClick() {
     if (player.grenade == true) {
+        refundAmmo();
         player.currentWeapon = "grenade";
         player.clipSize = GRENADE_CLIP;
+        weaponSwap();
         player.updateClip(0);
 		document.getElementById("speed").innerHTML = player.currentWeapon;
 		startEnemyTurn();
@@ -339,7 +345,21 @@ function healthClick() {
     }
 }
 
+function weaponSwap() {
+    //When the player swaps weapons, subtract the new clip size
+    if (player.currentAmmo == "incendiary") {
+        player.updateIncendiary(-player.clipSize);
+    }
+    if (player.currentAmmo == "alki") {
+        player.updateAlki(-player.clipSize);
+    }
+    if (player.currentAmmo == "sonic") {
+        player.updateSonic(-player.clipSize);
+    }
+}
+
 function refundAmmo() {
+    //Refunds the player ammo, used for swapping ammo and weapons
     var newClipSize = player.clipSize;
     if (player.currentAmmo == "incendiary") {
         player.updateIncendiary(newClipSize);
@@ -384,7 +404,7 @@ function initGUI() {
 
     //mainState.guiClip = new Static(scene, 545, 200, 32, 32, "img/ui/clip.png");
 
-    mainState.guiMeter = new Meter(scene, player.health, 600, 160, "#FF0000", 30, 120, DRAIN_DOWN);
+    mainState.guiMeter = new Meter(scene, player.health, 600, 160, "#FF0000", 30, 120, DRAIN_DOWN, "img/ui/meter.png");
 
     mainState.txtClipSize = new Text(scene, 500, 430, "Remaining Clip: " + player.clipSize, "#000", "bold 15px Arial");
     mainState.txtHealthQuantity = new Text(scene, 560, 235, player.healthPacks, "#000", "bold 15px Arial");
@@ -400,10 +420,34 @@ function drawGUI() {
     //Draw all GUI elements to the GUI
     mainState.guiBG.draw();
     mainState.guiPortrait.draw();
-	
+
+
+    if (player.currentWeapon == "pistol") {
+        mainState.guiPistol.setImage("img/ui/pistol.png");
+    }
+    else {
+        mainState.guiPistol.setImage("img/ui/pistolOff.png");
+    }
     mainState.guiPistol.draw();
-    if (player.shotgun == true) { mainState.guiShotgun.draw(); }
-    if (player.grenade == true) { mainState.guiGrenade.draw(); }
+    if (player.shotgun == true) {
+        if (player.currentWeapon == "shotgun") {
+            mainState.guiShotgun.setImage("img/ui/shotgun.png");
+        }
+        else {
+            mainState.guiShotgun.setImage("img/ui/shotgunOff.png");
+        }   
+        mainState.guiShotgun.draw();
+    }
+
+    if (player.grenade == true) {
+        if (player.currentWeapon == "grenade") {
+            mainState.guiGrenade.setImage("img/ui/grenade.png");
+        }
+        else {
+            mainState.guiGrenade.setImage("img/ui/grenadeOff.png");
+        }
+        mainState.guiGrenade.draw();
+    }
 	
     mainState.guiIncendiary.draw();
     mainState.guiAlki.draw();
