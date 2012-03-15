@@ -151,8 +151,8 @@ function initializePlayer() {
 		if (player.health >= 100) {
             player.health == 100;
         }
-        guiMeter.add(healthChange);
-        if (guiMeter.getCurrent() <= 0) {
+        mainState.guiMeter.add(healthChange);
+        if (mainState.guiMeter.getCurrent() <= 0) {
 			toLoseState();
             //TODO: PLAYER DED
         }
@@ -271,11 +271,45 @@ function initializePlayer() {
         startEnemyTurn();
     }
     player.fireWeapon = function () {
-        document.getElementById("speed").innerHTML = "fire";
+        var collisionLocation;
+        if (player.animation.currentCycleName == "leftidle") {
+            collisionLocation = fireGun(player.tileX, player.tileY, -1, 0);
+            if (collisionLocation != null) {
+
+            }
+        }
+        if (player.animation.currentCycleName == "rightidle") {
+            collisionLocation = fireGun(player.tileX, player.tileY, 1, 0);
+            if (collisionLocation != null) {
+
+            }
+        }
+        if (player.animation.currentCycleName == "downidle") {
+            collisionLocation = fireGun(player.tileX, player.tileY, 0, 1);
+            if (collisionLocation != null) {
+
+            }
+        }
+        if (player.animation.currentCycleName == "upidle") {
+            collisionLocation = fireGun(player.tileX, player.tileY, 0, -1);
+            if (collisionLocation != null) {
+
+            }
+        }
     }
     player.meleeAttack = function () {
-        //TODO: Player melees tile in front facing with currently equipped weapon
-        document.getElementById("speed").innerHTML = "melee";
+        if (player.animation.currentCycleName == "leftidle") {
+            meleeEnemy(player.tileX - 1, player.tileY);
+        }
+        if (player.animation.currentCycleName == "rightidle") {
+            meleeEnemy(player.tileX + 1, player.tileY);
+        }
+        if (player.animation.currentCycleName == "downidle") {
+            meleeEnemy(player.tileX, player.tileY + 1);
+        }
+        if (player.animation.currentCycleName == "upidle") {
+            meleeEnemy(player.tileX, player.tileY - 1);
+        }
     }
 }
 
@@ -672,10 +706,53 @@ new Array( "wall37", "wall38", "wall39", "wall39", "wall39", "wall39", "wall39",
     tileManager.loadTileSheet(32, 32, 384, 384, "img/EnvironmentTiles.png", tileSymbols);
 }
 
+function meleeEnemy(_x, _y) {
+    for (var i = 0; i < warehouseEnemies.length; i++) {
+        if (warehouseEnemies[i].tileX == _x) {
+            if (warehouseEnemies[i].tileY == _y) {
+                warehouseEnemies[i].health -= PLAYER_MELEE_DAMAGE;
+                if (warehouseEnemies[i].health <= 0) {
+                    document.getElementById("speed").innerHTML = "DED";
+                }
+            }
+        }
+    }
+}
+
+function fireGun(_x, _y, xdir, ydir) {
+    if (xdir != 0) {
+        while (_x >= 0 && _x <= 100) {
+            _x += xdir;
+            for (var i = 0; i < warehouseEnemies.length; i++) {
+                if (warehouseEnemies[i].tileX == _x) {
+                    if (warehouseEnemies[i].tileY == _y) {
+                        document.getElementById("speed").innerHTML = _x + " " + _y;
+                        return _y
+                    }
+                }
+            }
+        }
+    }
+
+    else if (ydir != 0) {
+        while (_y > 0 && _y <= 100) {
+            _y += ydir;
+            for (var i = 0; i < warehouseEnemies.length; i++) {
+                if (warehouseEnemies[i].tileX == _x) {
+                    if (warehouseEnemies[i].tileY == _y) {
+                        document.getElementById("speed").innerHTML = _x + " " + _y;
+                        return _x
+                    }
+                }
+            }
+        }
+    }
+}
+    
+
 function isSpaceEmpty(_x, _y) {
     //Checks the space in front of the player.  Returns true if the player can step there, false if the space is occupied.  
     for (var i = 0; i < warehouseEnemies.length; i++) {
-        //alert(warehouseEnemies[i].tileX + " " + warehouseEnemies[i].tileY + " / " + player.tileX + " " + player.tileY);
         if (warehouseEnemies[i].tileX == _x) {
             if (warehouseEnemies[i].tileY == _y) {
                 document.getElementById("speed").innerHTML = "false";
@@ -691,7 +768,7 @@ function isSpaceEmpty(_x, _y) {
 	}
 	
 	if( superType == "acid" ){
-		//player takes damage
+	    player.updateHealth(-10);
 	}
 	
 	if( superType == "door" ){
