@@ -29,6 +29,11 @@ function toClueState(){ clueState = scene.addState( "Clue", clueUpdate, clueInit
 function toWinState(){ winState = scene.addState( "Win", winUpdate, winInit); }
 function toLoseState(){ loseState = scene.addState( "Lose", loseUpdate, loseInit); }
 
+function warehouseClick(clicked){
+	warehouseId = clicked.warehouseId;
+	toMainState();
+}
+
 function titleInit() {
 	//replace this with whatever needs to be initialized for this state.
 	titleState.titleBG = new Static(scene, 0, 0, 640, 480, "img/TitleBG.png"); 
@@ -39,7 +44,7 @@ function introInit() {
 	//replace this with whatever needs to be initialized for this state.
 	introState.introBG = new Static(scene, 0, 0, 640, 480, "img/IntroBG.png"); 
 	introState.nextStateBtn = new Button(scene, 300, 200, 32, 32, toWarehouseState);
-	generateMap();
+	generateMaps(5);
 	initializePlayer();
 }
 
@@ -47,6 +52,17 @@ function warehouseInit(){
 	//replace this with whatever needs to be initialized for this state.
 	warehouseState.warehouseBG = new Static(scene, 0, 0, 640, 480, "img/WarehouseDistrictBG.png"); 
 	warehouseState.nextStateBtn = new Button(scene, 300, 200, 32, 32, toMainState);
+	
+	warehouseState.warehouse0 = new Button(scene, 10, 200, 32, 32, warehouseClick);
+	warehouseState.warehouse0.warehouseId = 0;
+	warehouseState.warehouse1 = new Button(scene, 52, 200, 32, 32, warehouseClick);
+	warehouseState.warehouse1.warehouseId = 1;
+	warehouseState.warehouse2 = new Button(scene, 94, 200, 32, 32, warehouseClick);
+	warehouseState.warehouse2.warehouseId = 2;
+	warehouseState.warehouse3 = new Button(scene, 136, 200, 32, 32, warehouseClick);
+	warehouseState.warehouse3.warehouseId = 3;
+	warehouseState.warehouse4 = new Button(scene, 178, 200, 32, 32, warehouseClick);
+	warehouseState.warehouse4.warehouseId = 4;
 	
 	warehouseId = 0;
 }
@@ -150,9 +166,10 @@ function initializePlayer() {
         player.health += healthChange;
 		if (player.health >= 100) {
             player.health == 100;
+			mainState.guiMeter.subtract(healthChange + healhChange/2);
         }
-        guiMeter.add(healthChange);
-        if (guiMeter.getCurrent() <= 0) {
+        mainState.guiMeter.add(healthChange);
+        if (mainState.guiMeter.getCurrent() <= 0) {
 			toLoseState();
             //TODO: PLAYER DED
         }
@@ -277,6 +294,8 @@ function initializePlayer() {
         //TODO: Player melees tile in front facing with currently equipped weapon
         document.getElementById("speed").innerHTML = "melee";
     }
+	
+	player.removeClickable();
 }
 
 function pistolClick() {
@@ -404,7 +423,8 @@ function initGUI() {
 
     //mainState.guiClip = new Static(scene, 545, 200, 32, 32, "img/ui/clip.png");
 
-    mainState.guiMeter = new Meter(scene, player.health, 600, 160, "#FF0000", 30, 120, DRAIN_DOWN, "img/ui/meter.png");
+    mainState.guiMeter = new Meter(scene, player.health, 600, 160, "#FF0000", 30, 120, DRAIN_DOWN);
+	mainState.guiMeter.setFancyMeter("img/ui/Life.png", "img/ui/Tube.png");
 
     mainState.txtClipSize = new Text(scene, 500, 430, "Remaining Clip: " + player.clipSize, "#000", "bold 15px Arial");
     mainState.txtHealthQuantity = new Text(scene, 560, 235, player.healthPacks, "#000", "bold 15px Arial");
@@ -612,18 +632,73 @@ function createItem(itemName, tileX, tileY){
 	return tItem;
 }
 
-function generateMap() {
-    //Function to generate the map the player is in
-	warehouseMaps = new Array();
-	warehouseItems = new Array();
-	warehouseEnemies = new Array();
-	tileSymbols = new Array(
-		"wall1", "wall2", "wall3", "wall4", "wall5", "6", "wall7", "wall8", "wall9", "wall10", "pallet11", "pallet12", "13", "14", "15", "wall16", "17", "wall18", "wall19", "wall20",
-		"21", "22", "pallet23", "pallet24", "wall25", "wall26", "door27", "door28", "door29", "door30", "31", "32", "wall33", "wall34", "crate", "acid", "wall37", "wall38", "wall39", "door40",
-		"door41", "door42", "43", "44", "wall45", "wall46", "oil", "cement", "rack49", "rack50", "rack51", "rack52", "rack53", "rack54", "rack55", "rack56", "57", "58", "59", "60",
-		"rack61", "rack62", "rack63", "rack64", "rack65", "rack66", "rack67", "rack68", "69", "70", "71", "72", "73", "74", "75", "76", "77", "78", "79", "80"
-	);
-    var tileMap = new Array( new Array( "wall3", "wall4", "wall5", "wall5", "wall5", "wall5", "wall5", "wall5", "wall5", "wall5", "wall5", "wall5", "wall5", "wall5", "wall5", "wall5", "wall5", "wall5", "wall5", "wall5", "wall5", "wall5", "wall5", "wall5", "wall5", "wall5", "wall5", "wall5", "wall5", "wall5", "wall7", "wall8"), 
+function placeItems(){
+
+}
+
+function placeEnemies(){
+
+}
+
+function placeRackWall(direction, topLeftX, topLeftY, tileLength){
+
+}
+
+function placePallet(topLeftX, topLeftY){
+
+}
+
+function placeWalls(tMap){
+	topLeftCorner = new Array( new Array( "wall3", "wall4" ), new Array( "wall1", "wall16" ) );
+	topMiddlePiece = new Array( new Array("wall5"), new Array("wall18") );
+	topRightCorner = new Array( new Array("wall7", "wall8"), new Array("wall19","wall20") );
+	leftMiddlePiece = new Array( "wall1", "wall2" );
+	bottomLeftCorner = new Array( new Array("wall25", "wall26"), new Array("wall37", "wall38") );
+	bottomMiddlePiece = new Array( new Array("wall26"), new Array("wall39") );
+	bottomRightCorner = new Array( new Array("wall33","wall34"), new Array("wall45","wall46") );
+	rightMiddlePiece = new Array( "wall9", "wall10" );
+	doorPiece = new Array( new Array("door27", "door28", "door29", "door30"), new Array("wall39", "door40", "door41", "door42") );
+	
+	doorX = 2 + Math.floor( Math.random()*( tMap[0].length - 3) )
+		
+	for(i = 0; i < topLeftCorner.length; i++){
+		for(j = 0; j < topLeftCorner[0].length; j++){
+			tMap[i][j] = topLeftCorner[i][j];
+			tMap[(tMap.length - 2) +j ][i] = bottomLeftCorner[j][i];
+		}
+	}
+	for(i = 2; i < (tMap[0].length - 2); i++){	
+		//gen topMiddle
+		tMap[0][i] = topMiddlePiece[0][0];
+		tMap[1][i] = topMiddlePiece[1][0];
+		tMap[tMap.length - 2][i] = bottomMiddlePiece[0][0];
+		tMap[tMap.length - 1][i] = bottomMiddlePiece[1][0];
+		if(i-doorX >= 0 && i-doorX < 4){
+			tMap[tMap.length - 2][i] = doorPiece[0][i-doorX];
+			tMap[tMap.length - 1][i] = doorPiece[1][i-doorX];
+		}
+	}
+	for(i = 2; i < (tMap.length - 2); i++){	
+		//gen leftPiece
+		tMap[i][0] = leftMiddlePiece[0];
+		tMap[i][1] = leftMiddlePiece[1];
+		//gen rightPiece
+		tMap[i][(tMap[0].length - 3)] = rightMiddlePiece[0];
+		tMap[i][(tMap[0].length - 2)] = rightMiddlePiece[1];
+	}
+	for(i = (tMap[0].length - 3); i < tMap[0].length; i++){
+		tMap[0][i] = topRightCorner[0][i - (tMap[0].length - 3)];
+		tMap[1][i] = topRightCorner[1][i - (tMap[0].length - 3)];
+		tMap[(tMap.length - 2)][i] = bottomRightCorner[0][i - (tMap[0].length - 3)];
+		tMap[(tMap.length - 1)][i] = bottomRightCorner[1][i - (tMap[0].length - 3)];
+	}
+	
+	
+	return tMap;
+}
+
+function testWarehouse(){
+var tileMap = new Array( new Array( "wall3", "wall4", "wall5", "wall5", "wall5", "wall5", "wall5", "wall5", "wall5", "wall5", "wall5", "wall5", "wall5", "wall5", "wall5", "wall5", "wall5", "wall5", "wall5", "wall5", "wall5", "wall5", "wall5", "wall5", "wall5", "wall5", "wall5", "wall5", "wall5", "wall5", "wall7", "wall8"), 
 new Array( "wall1", "wall16", "wall18", "wall18", "wall18", "wall18", "wall18", "wall18", "wall18", "wall18", "wall18", "wall18", "wall18", "wall18", "wall18", "wall18", "wall18", "wall18", "wall18", "wall18", "wall18", "wall18", "wall18", "wall18", "wall18", "wall18", "wall18", "wall18", "wall18", "wall18", "wall19", "wall20"), 
 new Array( "wall1", "wall2", "cement", "cement", "cement", "cement", "cement", "cement", "cement", "cement", "cement", "cement", "cement", "cement", "cement", "cement", "cement", "cement", "cement", "cement", "cement", "cement", "cement", "cement", "cement", "cement", "cement", "cement", "cement", "cement", "wall9", "wall10"), 
 new Array( "wall1", "wall2", "cement", "cement", "cement", "cement", "cement", "cement", "cement", "cement", "cement", "cement", "cement", "cement", "cement", "cement", "cement", "cement", "cement", "cement", "cement", "cement", "cement", "cement", "cement", "cement", "cement", "cement", "cement", "cement", "wall9", "wall10"), 
@@ -665,9 +740,76 @@ new Array( "wall37", "wall38", "wall39", "wall39", "wall39", "wall39", "wall39",
 	warehouseItems.push( createItem("alkiAmmo", 8, 11) );
 	warehouseItems.push( createItem("incendiaryAmmo", 10, 9) );
 	warehouseItems.push( createItem("sonicAmmo", 8, 8) );
-	warehouseItems.push( createItem("stimPack", 12, 12) );
+	warehouseItems.push( createItem("stimPack", 13, 12) );
 	warehouseItems.push( createItem("trap", 12, 8) );
 	warehouseEnemies.push( createEnemy("Spewer", 10, 3) );
+}
+
+function breakSpace(tMap){
+	var avgDivDistance = 50;
+	var verticalDivs =  Math.floor( (tMap[0].length)/avgDivDistance );
+	var horizontalDivs = Math.floor( (tMap.length)/avgDivDistance );
+	var xValues = new Array();
+	var yValues = new Array();
+	var xlen = xValues.length;
+	var ylen = yValues.length;
+	for(i = 0; i < verticalDivs; i++){ xValues[i] = 2 + Math.floor(Math.random()*(tMap[0].length-4)); }
+	for(i = 0; i < horizontalDivs; i++){ yValues[i] = 2 + Math.floor(Math.random()*(tMap.length-4)); }
+	xValues.push(tMap[0].length-2);
+	yValues.push(tMap.length-2);
+	for(i = 0; i < xlen; i++){ for(j = i+1; j < xlen; j++){ if(Math.abs(xValues[i] - xValues[j]) < 6){xValues.splice(i, 1);} } }
+	for(i = 0; i < ylen; i++){ for(j = i+1; j < ylen; j++){ if(Math.abs(yValues[i] - yValues[j]) < 6){yValues.splice(i, 1); } } }
+	xValues.sort(function sortNumber(a,b){	return a - b; } )
+	yValues.sort(function sortNumber(a,b){	return a - b; } )
+	var rects = new Array();
+	var tl = 0; var tr = 0;
+	for(i = 0; i < yValues.length; i++){
+		for(j = 0; j < xValues.length; j++){
+			rects.push(new Rectangle(tl, tr, xValues[j]-tl, yValues[i]-tr));
+			tl = xValues[j];
+		}
+		tr = yValues[i];
+	}
+	return rects;
+}
+
+function generateWarehouse(warehouseNum){
+	var tMap = new Array();
+	
+	// min/max width and height of each warehouse in tiles
+	var min = 50;
+	var max = 150;
+	
+	var width = min + Math.floor(Math.random()*( (max-min)+1 ));
+	var height = min + Math.floor(Math.random()*( (max-min)+1 ));
+	
+	for(var j = 0; j < height; j++){
+		tMap.push( new Array() );
+		for(var k = 0; k < width; k++){
+			tMap[j][k] = "cement";
+		}
+	}
+	tMap = placeWalls(tMap);
+	var areas = breakSpace(tMap);
+	warehouseMaps[warehouseNum] = tMap;
+}
+
+function generateMaps(numWarehouses) {
+    //Function to generate the map the player is in
+	warehouseMaps = new Array();
+	warehouseItems = new Array();
+	warehouseEnemies = new Array();
+	tileSymbols = new Array(
+		"wall1", "wall2", "wall3", "wall4", "wall5", "6", "wall7", "wall8", "wall9", "wall10", "pallet11", "pallet12", "13", "14", "15", "wall16", "17", "wall18", "wall19", "wall20",
+		"21", "22", "pallet23", "pallet24", "wall25", "wall26", "door27", "door28", "door29", "door30", "31", "32", "wall33", "wall34", "crate", "acid", "wall37", "wall38", "wall39", "door40",
+		"door41", "door42", "43", "44", "wall45", "wall46", "oil", "cement", "rack49", "rack50", "rack51", "rack52", "rack53", "rack54", "rack55", "rack56", "57", "58", "59", "60",
+		"rack61", "rack62", "rack63", "rack64", "rack65", "rack66", "rack67", "rack68", "69", "70", "71", "72", "73", "74", "75", "76", "77", "78", "79", "80"
+	);
+	
+	for(var i = 0; i < numWarehouses; i++){
+		if(i == 0){ testWarehouse(); }
+		else{ generateWarehouse(i); }
+	}
 	tileManager = new TileMap(scene);
     tileManager.loadTileSheet(32, 32, 384, 384, "img/EnvironmentTiles.png", tileSymbols);
 }
@@ -690,7 +832,7 @@ function isSpaceEmpty(_x, _y) {
 		return false;
 	}
 	
-	if( superType == "acid" ){
+	if( tileType == "acid" ){
 		//player takes damage
 	}
 	
@@ -799,7 +941,7 @@ function checkKeys() {
     }
 }
 
-function lockMovement() {//TODO: Tyler - find out what is wrong with movement or collisions
+function lockMovement() {
     //Locks the player's movement if he is in motion
     mainState.moveCounter += player.speed;
 
@@ -826,11 +968,6 @@ function lockMovement() {//TODO: Tyler - find out what is wrong with movement or
 
         startEnemyTurn();
     }
-}
-
-function tileCollision(hitTile) {
-    //resetSpeedFlag = true;
-    //player.setSpeed(0);
 }
 
 function startEnemyTurn() {
@@ -869,12 +1006,13 @@ function mainUpdate() {
     //tileManager.checkCollisions(player);
 	var iter;
 	for(iter = 0; iter < warehouseItems.length; iter++){ 
+		warehouseItems[iter].draw(); 
 		if(player.tileX == warehouseItems[iter].tileX && player.tileY == warehouseItems[iter].tileY )
 			{ warehouseItems[iter].collisionCallback(iter); }
-		warehouseItems[iter].draw(); 
 	}
 	for(iter = 0; iter < warehouseEnemies.length; iter++){ warehouseEnemies[iter].update(); }
 	player.update();
+	//player.updateHealth(-1);
     drawGUI();
 	//document.getElementById("speed").innerHTML = "X: " + player.tileX + " Y: " + player.tileY;
 }
@@ -882,6 +1020,12 @@ function mainUpdate() {
 function warehouseUpdate(){
 	warehouseState.warehouseBG.draw();
 	warehouseState.nextStateBtn.draw();
+	
+	warehouseState.warehouse0.draw();
+	warehouseState.warehouse1.draw();
+	warehouseState.warehouse2.draw();
+	warehouseState.warehouse3.draw();
+	warehouseState.warehouse4.draw();
 }
 
 function clueUpdate() {
