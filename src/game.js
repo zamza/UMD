@@ -272,28 +272,49 @@ function initializePlayer() {
     }
     player.fireWeapon = function () {
         var collisionLocation;
+        var range = getRange();
         if (player.animation.currentCycleName == "leftidle") {
-            collisionLocation = fireGun(player.tileX, player.tileY, -1, 0);
-            if (collisionLocation != null) {
-
+            if (player.currentWeapon != "shotgun") {
+                collisionLocation = fireGun(player.tileX, player.tileY, -1, 0, range);
+                if (collisionLocation != null) {
+                    document.getElementById("speed").innerHTML = collisionLocation + " " + player.tileY;
+                }
+            }
+            else if (player.currentWeapon == "shotgun") {
+                spreadShot();
             }
         }
         if (player.animation.currentCycleName == "rightidle") {
-            collisionLocation = fireGun(player.tileX, player.tileY, 1, 0);
-            if (collisionLocation != null) {
-
+            if (player.currentWeapon != "shotgun") {
+                collisionLocation = fireGun(player.tileX, player.tileY, 1, 0, range);
+                if (collisionLocation != null) {
+                    document.getElementById("speed").innerHTML = collisionLocation + " " + player.tileY;
+                }
+            }
+            else if (player.currentWeapon == "shotgun") {
+                spreadShot();
             }
         }
         if (player.animation.currentCycleName == "downidle") {
-            collisionLocation = fireGun(player.tileX, player.tileY, 0, 1);
-            if (collisionLocation != null) {
-
+            if (player.currentWeapon != "shotgun") {
+                collisionLocation = fireGun(player.tileX, player.tileY, 0, 1, range);
+                if (collisionLocation != null) {
+                    document.getElementById("speed").innerHTML = player.tileX + " " + collisionLocation;
+                }
+            }
+            else if (player.currentWeapon == "shotgun") {
+                spreadShot();
             }
         }
         if (player.animation.currentCycleName == "upidle") {
-            collisionLocation = fireGun(player.tileX, player.tileY, 0, -1);
-            if (collisionLocation != null) {
-
+            if (player.currentWeapon != "shotgun") {
+                collisionLocation = fireGun(player.tileX, player.tileY, 0, -1, range);
+                if (collisionLocation != null) {
+                    document.getElementById("speed").innerHTML = player.tileX + " " + collisionLocation;
+                }
+            }
+            else if (player.currentWeapon == "shotgun") {
+                spreadShot();
             }
         }
     }
@@ -319,7 +340,6 @@ function pistolClick() {
     player.clipSize = PISTOL_CLIP;
     weaponSwap();
     player.updateClip(0);
-    document.getElementById("speed").innerHTML = player.currentWeapon;
     startEnemyTurn();
 }
 
@@ -330,7 +350,6 @@ function shotgunClick() {
 	    player.clipSize = SHOTGUN_CLIP;
 	    weaponSwap();
 	    player.updateClip(0);
-		document.getElementById("speed").innerHTML = player.currentWeapon;
 		startEnemyTurn();
 	}
 }
@@ -342,7 +361,6 @@ function grenadeClick() {
         player.clipSize = GRENADE_CLIP;
         weaponSwap();
         player.updateClip(0);
-		document.getElementById("speed").innerHTML = player.currentWeapon;
 		startEnemyTurn();
 	}
 }
@@ -351,7 +369,6 @@ function incendiaryClick() {
     if (player.incendiaryAmmo > 0) {
         player.updateIncendiary(-refundAmmo());
 	    player.currentAmmo = "incendiary";
-		document.getElementById("speed").innerHTML = player.currentAmmo;
 	}
 }
 
@@ -359,7 +376,6 @@ function alkiClick() {
     if (player.alkiAmmo > 0) {
         player.updateAlki(-refundAmmo());
 	    player.currentAmmo = "alki";
-		document.getElementById("speed").innerHTML = player.currentAmmo;
 	}
 }
 
@@ -367,7 +383,6 @@ function sonicClick() {
     if (player.sonicAmmo > 0) {
         player.updateSonic(-refundAmmo());
         player.currentAmmo = "sonic";
-		document.getElementById("speed").innerHTML = player.currentAmmo;
 	}
 }
 
@@ -719,43 +734,61 @@ function meleeEnemy(_x, _y) {
     }
 }
 
-function fireGun(_x, _y, xdir, ydir) {
+function getRange() {
+    if (player.currentWeapon == "pistol") {
+        return PISTOL_RANGE;
+    }
+    else if (player.currentWeapon == "shotgun") {
+        return SHOTGUN_RANGE;
+    }
+    else if (player.currentWeapon == "grenade") {
+        return GRENADE_RANGE;
+    }
+}
+
+function fireGun(_x, _y, xdir, ydir, maxRange) {
     if (xdir != 0) {
-        while (_x >= 0 && _x <= 100) {
+        while (maxRange > 0) {
             _x += xdir;
+            maxRange--;
             for (var i = 0; i < warehouseEnemies.length; i++) {
                 if (warehouseEnemies[i].tileX == _x) {
                     if (warehouseEnemies[i].tileY == _y) {
                         document.getElementById("speed").innerHTML = _x + " " + _y;
-                        return _y
+                        return _x;
                     }
                 }
             }
         }
+        return _x;
     }
 
     else if (ydir != 0) {
-        while (_y > 0 && _y <= 100) {
+        while (maxRange > 0) {
             _y += ydir;
+            maxRange--;
             for (var i = 0; i < warehouseEnemies.length; i++) {
                 if (warehouseEnemies[i].tileX == _x) {
                     if (warehouseEnemies[i].tileY == _y) {
                         document.getElementById("speed").innerHTML = _x + " " + _y;
-                        return _x
+                        return _y;
                     }
                 }
             }
         }
+        return _y;
     }
 }
+
+function spreadShot() {
     
+}
 
 function isSpaceEmpty(_x, _y) {
     //Checks the space in front of the player.  Returns true if the player can step there, false if the space is occupied.  
     for (var i = 0; i < warehouseEnemies.length; i++) {
         if (warehouseEnemies[i].tileX == _x) {
             if (warehouseEnemies[i].tileY == _y) {
-                document.getElementById("speed").innerHTML = "false";
                 return false;
             }
         }
@@ -775,7 +808,6 @@ function isSpaceEmpty(_x, _y) {
 		//exit to warehouse District
 	}
 	
-    document.getElementById("speed").innerHTML = "true";
     return true;
 }
 
