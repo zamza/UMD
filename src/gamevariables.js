@@ -21,3 +21,6 @@ var AMMO_UPDATE = 18;
 
 //How much damage does a player's melee do?
 var PLAYER_MELEE_DAMAGE = 3;
+
+//How much damage does acid do
+var ACID_DAMAGE = 10;

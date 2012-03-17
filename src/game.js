@@ -318,8 +318,10 @@ function initializePlayer() {
         player.clipSize += clipChange;
         if (player.clipSize < 0) {
             player.clipSize = 0;
+            return false;
         }
         mainState.txtClipSize.text = "Remaining Clip: " + player.clipSize;
+        return true;
     }
 
     player.addShotGun = function () {
@@ -385,28 +387,37 @@ function initializePlayer() {
         startEnemyTurn();
     }
     player.fireWeapon = function () {
+        if (player.updateClip(-1)) {
         var collisionLocation;
         var range = getRange();
+            if (player.currentAmmo == "sonic") {
+                var nearTiles = getAdjTiles(player.tileX, player.tileY);
+                for (var i = 0; i < nearTiles.length; i++) {
+                    if (isSpaceEmpty(nearTiles[i][0], nearTiles[i][1]) != "environment") {
+                        //DEAL DAMAGE TO ENEMIES
+                    }
+                }
+            }
         if (player.animation.currentCycleName == "leftidle") {
             if (player.currentWeapon != "shotgun") {
                 collisionLocation = fireGun(player.tileX, player.tileY, -1, 0, range);
                 if (collisionLocation != null) {
-                    document.getElementById("speed").innerHTML = collisionLocation + " " + player.tileY;
+
     }
             }
             else if (player.currentWeapon == "shotgun") {
-                spreadShot();
+                    spreadShot(player.tileX, player.tileY, -1, 0, range);
             }
         }
         if (player.animation.currentCycleName == "rightidle") {
             if (player.currentWeapon != "shotgun") {
                 collisionLocation = fireGun(player.tileX, player.tileY, 1, 0, range);
                 if (collisionLocation != null) {
-                    document.getElementById("speed").innerHTML = collisionLocation + " " + player.tileY;
+
                 }
             }
             else if (player.currentWeapon == "shotgun") {
-                spreadShot();
+                    spreadShot(player.tileX, player.tileY, 1, 0, range);
             }
         }
         if (player.animation.currentCycleName == "downidle") {
@@ -417,7 +428,7 @@ function initializePlayer() {
                 }
             }
             else if (player.currentWeapon == "shotgun") {
-                spreadShot();
+                    spreadShot(player.tileX, player.tileY, 0, 1, range);
             }
         }
         if (player.animation.currentCycleName == "upidle") {
@@ -428,9 +439,10 @@ function initializePlayer() {
                 }
             }
             else if (player.currentWeapon == "shotgun") {
-                spreadShot();
+                    spreadShot(player.tileX, player.tileY, 0, -1, range);
             }
         }
+    }
     }
     player.meleeAttack = function () {
         if (player.animation.currentCycleName == "leftidle") {
@@ -1223,6 +1235,23 @@ function meleeEnemy(_x, _y) {
     }
 }
 
+function getAdjTiles(_x, _y) {
+    var adjTiles = new Array(8);
+    var iter = 0;
+    for (var i = -1; i <= 1; i++) {
+        for (j = -1; j <= 1; j++) {
+            if (i == 0 && j == 0) {
+                continue;
+            }
+            adjTiles[iter] = new Array(2);
+            adjTiles[iter][0] = (_x + i);
+            adjTiles[iter][1] = (_y + j);
+            iter++;
+        }
+    }
+    return adjTiles;
+}
+
 function getRange() {
     if (player.currentWeapon == "pistol") {
         return PISTOL_RANGE;
@@ -1240,12 +1269,39 @@ function fireGun(_x, _y, xdir, ydir, maxRange) {
         while (maxRange > 0) {
             _x += xdir;
             maxRange--;
-            for (var i = 0; i < warehouseEnemies.length; i++) {
-                if (warehouseEnemies[i].tileX == _x) {
-                    if (warehouseEnemies[i].tileY == _y) {
-                        document.getElementById("speed").innerHTML = _x + " " + _y;
+            var checkSpace = isSpaceEmpty(_x, _y);
+            if (checkSpace) {
+                if (player.currentAmmo == "incendiary") {
+                    if (checkSpace == "environment") {
+                        _x -= xdir;
+                    }
+                    //TODO: CHANGE TO FIRE
+                    tileManager.changeTileType(_x, _y, "acid");
+                }
+                if (player.currentWeapon == "grenade") {
+                    var nearTiles = getAdjTiles(_x, _y);
+                    for (var i = 0; i < nearTiles.length; i++) {
+                        if (!isSpaceEmpty(nearTiles[i][0], nearTiles[i][1])) {
+                            tileManager.changeTileType(nearTiles[i][0], nearTiles[i][1], "acid");
+                        }
+                    }
+                }
                         return _x;
                     }
+            
+            if (player.currentAmmo == "alki") {
+                tileManager.changeTileType(_x, _y, "acid");
+                }
+            }
+        if (player.currentAmmo == "incendiary") {
+            //TODO: CHANGE TO FIRE
+            tileManager.changeTileType(_x, _y, "acid");
+        }
+        if (player.currentWeapon == "grenade") {
+            var nearTiles = getAdjTiles(_x, _y);
+            for (var i = 0; i < nearTiles.length; i++) {
+                if (!isSpaceEmpty(nearTiles[i][0], nearTiles[i][1])) {
+                    //CHECK FOR ENEMY, DAMAGE THEM
                 }
             }
         }
@@ -1256,12 +1312,38 @@ function fireGun(_x, _y, xdir, ydir, maxRange) {
         while (maxRange > 0) {
             _y += ydir;
             maxRange--;
-            for (var i = 0; i < warehouseEnemies.length; i++) {
-                if (warehouseEnemies[i].tileX == _x) {
-                    if (warehouseEnemies[i].tileY == _y) {
-                        document.getElementById("speed").innerHTML = _x + " " + _y;
+            var checkSpace = isSpaceEmpty(_x, _y);
+            if (checkSpace) {
+                if (player.currentAmmo == "incendiary") {
+                    if (checkSpace == "environment") {
+                        _y -= ydir;
+                    }
+                    //TODO: CHANGE TO FIRE
+                    tileManager.changeTileType(_x, _y, "acid");
+                }
+                if (player.currentWeapon == "grenade") {
+                    var nearTiles = getAdjTiles(_x, _y);
+                    for (var i = 0; i < nearTiles.length; i++) {
+                        if (!isSpaceEmpty(nearTiles[i][0], nearTiles[i][1])) {
+                            tileManager.changeTileType(nearTiles[i][0], nearTiles[i][1], "acid");
+                        }
+                    }
+                }
                         return _y;
                     }
+            if (player.currentAmmo == "alki") {
+                tileManager.changeTileType(_x, _y, "acid");
+                }
+            }
+        if (player.currentAmmo == "incendiary") {
+        //TODO: CHANGE TO FIRE
+            tileManager.changeTileType(_x, _y, "acid");
+        }
+        if (player.currentWeapon == "grenade") {
+            var nearTiles = getAdjTiles(_x, _y);
+            for (var i = 0; i < nearTiles.length; i++) {
+                if (!isSpaceEmpty(nearTiles[i][0], nearTiles[i][1])) {
+                    //CHECK FOR ENEMY, DAMAGE THEM
                 }
             }
         }
@@ -1269,16 +1351,72 @@ function fireGun(_x, _y, xdir, ydir, maxRange) {
     }
 }
 
-function spreadShot() {
-    
+function spreadShot(_x, _y, xdir, ydir, maxRange) {
+    if (xdir != 0) {
+        for (i = 1; i <= maxRange; i++) {
+            for (j = -i; j <= i; j++) {
+                var checkX = _x + (i * xdir);
+                var checkY = _y + j;
+                var checkSpace = isSpaceEmpty(checkX, checkY);
+                if (checkSpace == "enemy")
+                {
+                        //TODO: FIND ENEMY AND DAMAGE HIM
+                }
+                if (checkSpace != "environment") {
+                    if (player.currentAmmo == "alki") {
+                        tileManager.changeTileType(checkX, checkY, "acid");
+                    }
+                    if (player.currentAmmo == "incendiary") {
+                        //TODO: LEAVE FIRE
+                    }        
+                }  
+                //DON"T LET BULLETS THROUGH WALLS
+            }
+        }
+    }
+
+    else if (ydir != 0) {
+        for (i = 1; i <= maxRange; i++) {
+            for (j = -i; j <= i; j++) {
+                var checkX = _x + j;
+                var checkY = _y + (i * ydir);
+                var checkSpace = isSpaceEmpty(checkX, checkY);
+                if (checkSpace == "enemy")
+                {
+                    //TODO: FIND ENEMY AND DAMAGE HIM
+                }
+                if (checkSpace != "environment") {
+                    if (player.currentAmmo == "alki") {
+                        tileManager.changeTileType(checkX, checkY, "acid");
+                    }
+                    if (player.currentAmmo == "indendiary") {
+                        //TODO: LEAVE FIRE
+                    }      
+                }
+                //DON"T LET BULLETS THROUGH WALLS
+            }
+        }
+    }
+}
+
+function getEnemyAt(_x, _y) {
+    for (var i = 0; i < warehouseEnemies.length; i++) {
+        if (warehouseEnemies[i].tileX == _x) {
+            if (warehouseEnemies[i].tileY == _y) {
+                return "enemy";
+            }
+        }
+    }
 }
 
 function isSpaceEmpty(_x, _y) {
-    //Checks the space in front of the player.  Returns true if the player can step there, false if the space is occupied.  
+    //Checks the space in front of the player.  Returns true if the player can step there, false if the space is occupied.
+
+    //Check for enemy.  If true, return the position in the array where the enemy is
     for (var i = 0; i < warehouseEnemies[warehouseId].length; i++) {
         if (warehouseEnemies[warehouseId][i].tileX == _x) {
             if (warehouseEnemies[warehouseId][i].tileY == _y) {
-                return false;
+                return "enemy";
             }
         }
     }
@@ -1286,18 +1424,18 @@ function isSpaceEmpty(_x, _y) {
 	var superType = tileType.substring(0, 4);// can be wall, door, rack, or pall
 	//document.getElementById("speed").innerHTML = tileType;
 	if( tileType != "cement" && tileType != "acid" && superType != "door" ){
-		return false;
+		return "environment";
 	}
-	
-	if( tileType == "acid" ){
-	    player.updateHealth(-10);
+
+    if (tileType == "acid") {
+        return "acid";
 	}
 	
 	if( superType == "door" ){
 		toWarehouseState();
 	}
 	
-    return true;
+    return false;
 }
 
 function checkKeys() {
@@ -1314,61 +1452,74 @@ function checkKeys() {
 
     //Check arrow keys for movement.
     if (keysDown[K_LEFT] && mainState.canMove == true) {
+        var checkSpace = isSpaceEmpty(player.tileX - 1, player.tileY);
 
         if (!mainState.playerRotate) {
             mainState.canMove = false;
             player.speed = 4;
         }
         player.setCurrentCycle("left");
-        if (isSpaceEmpty(player.tileX - 1, player.tileY)) {
+
+        if (checkSpace != "environment" && checkSpace != "enemy") {
             //player.setMoveAngle(180);
             player.setChangeX(-4);
             if (!mainState.playerRotate) {
                 player.updateX(-1);
             }
         }
+        if (checkSpace == "acid")
+            player.updateHealth(-ACID_DAMAGE);
     }
     else if (keysDown[K_RIGHT] && mainState.canMove == true) {
+        var checkSpace = isSpaceEmpty(player.tileX + 1, player.tileY);
         if (!mainState.playerRotate) {
             mainState.canMove = false;
             player.speed = 4;
         }
         player.setCurrentCycle("right");
-        if (isSpaceEmpty(player.tileX + 1, player.tileY)) {
+        if (checkSpace != "environment" && checkSpace != "enemy") {
             //player.setMoveAngle(0);
             player.setChangeX(4);
             if (!mainState.playerRotate) {
                 player.updateX(1);
             }
         }
+        if (checkSpace == "acid")
+            player.updateHealth(-ACID_DAMAGE);
     }
     else if (keysDown[K_UP] && mainState.canMove == true) {
+        var checkSpace = isSpaceEmpty(player.tileX, player.tileY - 1);
         if (!mainState.playerRotate) {
             mainState.canMove = false;
             player.speed = 4;
         }
         player.setCurrentCycle("up");
-        if (isSpaceEmpty(player.tileX, player.tileY - 1)) {
+        if (checkSpace != "environment" && checkSpace != "enemy") {
             //player.setMoveAngle(270);
             player.setChangeY(-4);
             if (!mainState.playerRotate) {
                 player.updateY(-1);
             }
         }
+        if (checkSpace == "acid")
+            player.updateHealth(-ACID_DAMAGE);
     }
     else if (keysDown[K_DOWN] && mainState.canMove == true) {
+        var checkSpace = isSpaceEmpty(player.tileX, player.tileY + 1);
         if (!mainState.playerRotate) {
             mainState.canMove = false;
             player.speed = 4;
         }
         player.setCurrentCycle("down");
-        if (isSpaceEmpty(player.tileX, player.tileY + 1)) {
+        if (checkSpace != "environment" && checkSpace != "enemy") {
             //player.setMoveAngle(90);
             player.setChangeY(4);
             if (!mainState.playerRotate) {
                 player.updateY(1);
             }
         }
+        if (checkSpace == "acid")
+            player.updateHealth(-ACID_DAMAGE);
     }
 
     //Fire weapon
